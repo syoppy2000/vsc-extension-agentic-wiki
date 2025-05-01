@@ -1,12 +1,12 @@
-import * as vscode from 'vscode';
-import * as path from 'path';
+import * as vscode from "vscode";
+import * as path from "path";
 
 // 获取 wiki 页面路径
 export function getWikiPath(): string {
     if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0) {
-        throw new Error('未打开工作区，无法确定 Wiki 路径');
+        throw new Error("未打开工作区，无法确定 Wiki 路径");
     }
-    return path.join(vscode.workspace.workspaceFolders[0].uri.fsPath, 'wiki');
+    return path.join(vscode.workspace.workspaceFolders[0].uri.fsPath, "wiki");
 }
 
 // 确保目录存在
@@ -21,10 +21,10 @@ export async function ensureDirectoryExists(dirPath: string): Promise<void> {
 
 // 生成随机 Wiki 内容
 export function generateRandomWikiContent(): string {
-    const titles = ['项目概述', '技术架构', '开发指南', '常见问题', '最佳实践'];
+    const titles = ["项目概述", "技术架构", "开发指南", "常见问题", "最佳实践"];
     const randomTitle = titles[Math.floor(Math.random() * titles.length)];
 
-    const date = new Date().toLocaleDateString('zh-CN');
+    const date = new Date().toLocaleDateString("zh-CN");
 
     return `# ${randomTitle}
 

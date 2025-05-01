@@ -1,6 +1,6 @@
-import * as vscode from 'vscode';
-import { registerGenerateCommand } from './commands/generateCommand';
-import { registerOpenCommand } from './commands/openCommand';
+import * as vscode from "vscode";
+import { registerGenerateCommand } from "./commands/generateCommand";
+import { registerOpenCommand } from "./commands/openCommand";
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Congratulations, your extension "deep-wiki" is now active!');
