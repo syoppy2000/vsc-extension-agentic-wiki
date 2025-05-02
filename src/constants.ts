@@ -1,0 +1,75 @@
+import { GlobalConfig } from "./types";
+
+export const CONFIG_KEY = "deep-wiki.config";
+export const OUTPUT_DIR = "deep-wiki";
+
+// 默认包含模式
+const DEFAULT_INCLUDE_PATTERNS = [
+    "*.py",
+    "*.js",
+    "*.jsx",
+    "*.ts",
+    "*.tsx",
+    "*.go",
+    "*.java",
+    "*.pyi",
+    "*.pyx",
+    "*.c",
+    "*.cc",
+    "*.cpp",
+    "*.h",
+    "*.md",
+    "*.rst",
+    "Dockerfile",
+    "Makefile",
+    "*.yaml",
+    "*.yml",
+];
+// 默认排除模式
+const DEFAULT_EXCLUDE_PATTERNS = [
+    "assets/*",
+    "data/*",
+    "examples/*",
+    "images/*",
+    "public/*",
+    "static/*",
+    "temp/*",
+    "docs/*",
+    "*.env",
+    "*.env.*",
+    "*.lock",
+    "venv/*",
+    ".venv/*",
+    "*test*",
+    "tests/*",
+    "docs/*",
+    "examples/*",
+    "v1/*",
+    "dist/*",
+    "build/*",
+    "experimental/*",
+    "deprecated/*",
+    "misc/*",
+    "legacy/*",
+    ".git/*",
+    ".github/*",
+    ".next/*",
+    ".vscode/*",
+    "obj/*",
+    "bin/*",
+    "node_modules/*",
+    "*.log",
+];
+
+export const DEFAULT_CONFIG: GlobalConfig = {
+    llmApiKey: "",
+    localDir: "",
+    projectName: null,
+    outputDir: OUTPUT_DIR,
+    includePatterns: DEFAULT_INCLUDE_PATTERNS,
+    excludePatterns: DEFAULT_EXCLUDE_PATTERNS,
+    maxFileSize: 100,
+    language: "English",
+    useCache: true,
+    maxAbstractionNum: 10,
+};

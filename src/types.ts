@@ -18,8 +18,13 @@ export interface GlobalConfig extends WikiConfig {
     llmApiKey: string;
 }
 
-export interface SharedStore extends WikiConfig {
-    files: any[];
+export interface FileInfo {
+    path: string;
+    content: string;
+}
+
+export interface SharedStore extends GlobalConfig {
+    files: FileInfo[];
     abstractions: any[];
     relationships: Record<string, any>;
     chapterOrder: any[];

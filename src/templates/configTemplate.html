@@ -105,13 +105,13 @@
             <h2 class="section-title">文件过滤</h2>
             <div class="form-group">
                 <label for="includePatterns">包含模式</label>
-                <textarea id="includePatterns" placeholder="每行一个模式，例如: *.py, *.js"></textarea>
+                <textarea id="includePatterns" placeholder="例如: *.py, *.js"></textarea>
                 <div class="description">要包含的文件模式，使用逗号分隔</div>
             </div>
 
             <div class="form-group">
                 <label for="excludePatterns">排除模式</label>
-                <textarea id="excludePatterns" placeholder="每行一个模式，例如: node_modules/*, .git/*"></textarea>
+                <textarea id="excludePatterns" placeholder="例如: node_modules/*, .git/*"></textarea>
                 <div class="description">要排除的文件模式，使用逗号分隔</div>
             </div>
 
@@ -199,8 +199,8 @@
                         localDir: document.getElementById("localDir").value,
                         projectName: document.getElementById("projectName").value || null,
                         outputDir: document.getElementById("outputDir").value,
-                        includePatterns: document.getElementById("includePatterns").value,
-                        excludePatterns: document.getElementById("excludePatterns").value,
+                        includePatterns: (document.getElementById("includePatterns").value|| []).split(",").map((pattern) => pattern.trim()),
+                        excludePatterns: (document.getElementById("excludePatterns").value||[]).split(",").map((pattern) => pattern.trim()),
                         maxFileSize: parseInt(document.getElementById("maxFileSize").value, 10),
                         language: document.getElementById("language").value,
                         useCache: document.getElementById("useCache").checked,
