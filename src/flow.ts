@@ -1,9 +1,12 @@
 import { Flow } from "pocketflow";
-import { FetchRepoNode } from "./nodes";
 import { SharedStore } from "./types";
+import { FetchRepoNode, IdentifyAbstractionsNode } from "./nodes";
 
 export function createFlow(): Flow {
-    const fetchNode = new FetchRepoNode();
-    // Create flow starting with input node
-    return new Flow<SharedStore>(fetchNode);
+    const fetchRepoNode = new FetchRepoNode();
+    const identifyAbstractionNode = new IdentifyAbstractionsNode();
+
+    fetchRepoNode.next(identifyAbstractionNode);
+
+    return new Flow<SharedStore>(fetchRepoNode);
 }

@@ -29,6 +29,7 @@ class ConfigPanel {
     constructor(context: vscode.ExtensionContext) {
         this.context = context;
         const savedConfig = context.globalState.get<GlobalConfig>(CONFIG_KEY) || {};
+
         this.config = Object.assign(
             {},
             DEFAULT_CONFIG,

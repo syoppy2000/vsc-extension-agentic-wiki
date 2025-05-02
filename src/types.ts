@@ -25,9 +25,26 @@ export interface FileInfo {
 
 export interface SharedStore extends GlobalConfig {
     files: FileInfo[];
-    abstractions: any[];
+    abstractions: Abstraction[];
     relationships: Record<string, any>;
     chapterOrder: any[];
     chapters: any[];
     finalOutputDir?: string | null;
+}
+
+export interface Abstraction {
+    name: string;
+    description: string;
+    files: number[];
+}
+
+export interface IdentifyAbstractionsPrepResult {
+    context: string;
+    fileListingForPrompt: string;
+    fileCount: number;
+    projectName: string;
+    language: string;
+    useCache: boolean;
+    maxAbstractionNum: number;
+    apiKey: string;
 }

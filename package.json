@@ -14,6 +14,10 @@
     "contributes": {
         "commands": [
             {
+                "command": "deep-wiki.config",
+                "title": "Deep Wiki: Config"
+            },
+            {
                 "command": "deep-wiki.generate",
                 "title": "Deep Wiki: Generate"
             },
@@ -35,10 +39,12 @@
         "pretest": "pnpm run compile-tests && pnpm run compile && pnpm run lint",
         "check-types": "tsc --noEmit",
         "lint": "eslint src",
+        "lint:fix": "eslint --fix src",
         "test": "vscode-test",
         "format": "prettier --write . src"
     },
     "devDependencies": {
+        "@types/debug": "^4.1.12",
         "@types/mocha": "^10.0.10",
         "@types/node": "20.x",
         "@types/vscode": "^1.99.0",
@@ -56,5 +62,13 @@
     },
     "simple-git-hooks": {
         "pre-commit": "pretty-quick --staged"
+    },
+    "dependencies": {
+        "debug": "^4.4.0",
+        "ignore": "^7.0.4",
+        "minimatch": "^10.0.1",
+        "openai": "^4.96.2",
+        "pocketflow": "^1.0.4",
+        "yaml": "^2.7.1"
     }
 }
