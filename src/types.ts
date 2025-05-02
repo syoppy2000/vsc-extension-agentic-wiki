@@ -26,7 +26,7 @@ export interface FileInfo {
 export interface SharedStore extends GlobalConfig {
     files: FileInfo[];
     abstractions: Abstraction[];
-    relationships: Record<string, any>;
+    relationships: RelationshipsResult;
     chapterOrder: any[];
     chapters: any[];
     finalOutputDir?: string | null;
@@ -46,5 +46,26 @@ export interface IdentifyAbstractionsPrepResult {
     language: string;
     useCache: boolean;
     maxAbstractionNum: number;
+    apiKey: string;
+}
+
+export interface Relationship {
+    from: number;
+    to: number;
+    label: string;
+}
+
+export interface RelationshipsResult {
+    summary: string;
+    details: Relationship[];
+}
+
+export interface AnalyzeRelationshipsPrepResult {
+    context: string;
+    abstractionListing: string;
+    projectName: string;
+    language: string;
+    useCache: boolean;
+    numAbstractions: number;
     apiKey: string;
 }
