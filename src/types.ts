@@ -28,14 +28,33 @@ export interface SharedStore extends GlobalConfig {
     abstractions: Abstraction[];
     relationships: RelationshipsResult;
     chapterOrder: number[];
-    chapters: any[];
+    chapters: string[];
     finalOutputDir?: string | null;
+}
+
+export interface ChapterInfo {
+    num: number;
+    name: string;
+    filename: string;
 }
 
 export interface Abstraction {
     name: string;
     description: string;
     files: number[];
+}
+
+export interface ChapterItem {
+    chapterNum: number;
+    abstractionIndex: number;
+    abstractionDetails: Abstraction;
+    relatedFilesContentMap: Record<string, string>;
+    projectName: string;
+    fullChapterListing: string;
+    chapterFilenames: Record<number, ChapterInfo>;
+    prevChapter: ChapterInfo | null;
+    nextChapter: ChapterInfo | null;
+    language: string;
 }
 
 export interface IdentifyAbstractionsPrepResult {

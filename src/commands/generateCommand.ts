@@ -1,8 +1,7 @@
 import * as vscode from "vscode";
-import * as path from "path";
-import { getWikiPath, ensureDirectoryExists, generateRandomWikiContent } from "../utils";
-import { createFlow } from "../flow";
 import { CONFIG_KEY } from "../constants";
+import { createFlow } from "../flow";
+import { SharedStore } from "../types";
 
 export function registerGenerateCommand(context: vscode.ExtensionContext) {
     const generate = vscode.commands.registerCommand("deep-wiki.generate", async () => {
@@ -35,8 +34,8 @@ export function registerGenerateCommand(context: vscode.ExtensionContext) {
                     // const wikiPath = getWikiPath();
 
                     const flow = createFlow();
-                    let shared = context.globalState.get(CONFIG_KEY);
-
+                    let shared = context.globalState.get<SharedStore>(CONFIG_KEY) || ({} as SharedStore);
+                    flow.setParams({ ...shared });
                     await flow.run(shared);
                     console.log(shared);
 
