@@ -27,7 +27,7 @@ export interface SharedStore extends GlobalConfig {
     files: FileInfo[];
     abstractions: Abstraction[];
     relationships: RelationshipsResult;
-    chapterOrder: any[];
+    chapterOrder: number[];
     chapters: any[];
     finalOutputDir?: string | null;
 }
@@ -67,5 +67,15 @@ export interface AnalyzeRelationshipsPrepResult {
     language: string;
     useCache: boolean;
     numAbstractions: number;
+    apiKey: string;
+}
+
+export interface ChapterOrderPreResult {
+    abstractionListing: string;
+    context: string;
+    numAbstractions: number;
+    projectName: string;
+    listLangNote: string;
+    useCache: boolean;
     apiKey: string;
 }
