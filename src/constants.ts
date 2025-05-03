@@ -1,7 +1,7 @@
 import { GlobalConfig } from "./types";
 
-export const CONFIG_KEY = "deep-wiki.config";
-export const OUTPUT_DIR = "deep-wiki";
+export const CONFIG_KEY = "agentic-wiki.config";
+export const OUTPUT_DIR = "agentic-wiki";
 
 // Default inclusion patterns
 const DEFAULT_INCLUDE_PATTERNS = [

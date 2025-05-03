@@ -27,6 +27,8 @@ async function main() {
     const ctx = await esbuild.context({
         entryPoints: ["src/extension.ts"],
         bundle: true,
+        minify: true,
+        treeShaking: true,
         format: "cjs",
         minify: production,
         sourcemap: !production,

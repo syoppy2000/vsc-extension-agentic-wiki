@@ -1,9 +1,21 @@
 # Change Log
 
-All notable changes to the "deep-wiki" extension will be documented in this file.
+All notable changes to the "Agentic Wiki" extension will be documented in this file.
 
-Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
+## [0.0.1] - 2023-11-15
+
+### Added
+
+- Initial release
+- Configuration panel functionality
+- Wiki generation feature
+- Wiki viewing capability
 
 ## [Unreleased]
 
-- Initial release
+### Planned
+
+- Improved UX for configuration panel
+- Security config enhancements
+- Enhanced error handling
+- Visualization flow improvements

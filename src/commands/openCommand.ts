@@ -4,7 +4,7 @@ import * as fs from "fs";
 import { getWikiPath } from "../utils";
 
 export function registerOpenCommand(context: vscode.ExtensionContext) {
-    const open = vscode.commands.registerCommand("deep-wiki.open", async () => {
+    const open = vscode.commands.registerCommand("agentic-wiki.open", async () => {
         try {
             const wikiPath = getWikiPath();
             const fileName = `agentic-wiki.md`;
@@ -19,7 +19,7 @@ export function registerOpenCommand(context: vscode.ExtensionContext) {
                 );
 
                 if (result === "Yes") {
-                    vscode.commands.executeCommand("deep-wiki.generate");
+                    vscode.commands.executeCommand("agentic-wiki.generate");
                 }
                 return;
             }

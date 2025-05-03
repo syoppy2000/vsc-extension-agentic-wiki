@@ -4,7 +4,7 @@ import { registerOpenCommand } from "./commands/openCommand";
 import { registerConfigCommand } from "./commands/configCommand";
 
 export function activate(context: vscode.ExtensionContext) {
-    console.log('Congratulations, your extension "deep-wiki" is now active!');
+    console.log('Congratulations, your extension "agentic-wiki" is now active!');
 
     // Register commands
     registerGenerateCommand(context);

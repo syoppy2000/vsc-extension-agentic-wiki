@@ -4,7 +4,7 @@ import { createFlow } from "../flow";
 import { SharedStore } from "../types";
 
 export function registerGenerateCommand(context: vscode.ExtensionContext) {
-    const generate = vscode.commands.registerCommand("deep-wiki.generate", async () => {
+    const generate = vscode.commands.registerCommand("agentic-wiki.generate", async () => {
         // Use progress bar to display generation process
         await vscode.window.withProgress(
             {
@@ -49,7 +49,7 @@ export function registerGenerateCommand(context: vscode.ExtensionContext) {
                     progress.report({ increment: 30, message: "Writing files..." });
                     // await vscode.workspace.fs.writeFile(vscode.Uri.file(filePath), Buffer.from(wiki));
                     progress.report({ increment: 10, message: "Wiki page successfully generated!" });
-                    vscode.commands.executeCommand("deep-wiki.open");
+                    vscode.commands.executeCommand("agentic-wiki.open");
                 } catch (error) {
                     vscode.window.showErrorMessage(
                         `Failed to generate Wiki page: ${error instanceof Error ? error.message : String(error)}`,

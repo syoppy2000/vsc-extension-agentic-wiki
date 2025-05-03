@@ -5,7 +5,7 @@ import { GlobalConfig } from "../types";
 import { CONFIG_KEY, DEFAULT_CONFIG, OUTPUT_DIR } from "../constants";
 
 export function registerConfigCommand(context: vscode.ExtensionContext) {
-    const config = vscode.commands.registerCommand("deep-wiki.config", async () => {
+    const config = vscode.commands.registerCommand("agentic-wiki.config", async () => {
         try {
             // Create and display configuration form
             const configPanel = new ConfigPanel(context);
@@ -43,8 +43,8 @@ class ConfigPanel {
 
         // Create WebView panel
         this.panel = vscode.window.createWebviewPanel(
-            "deepWikiConfig",
-            "Deep Wiki Configuration",
+            "AgenticWikiConfig",
+            "Agentic Wiki Configuration",
             vscode.ViewColumn.One,
             {
                 enableScripts: true,

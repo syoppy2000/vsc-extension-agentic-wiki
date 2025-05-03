@@ -1,39 +1,63 @@
 {
-    "name": "deep-wiki",
-    "displayName": "Deep Wiki",
+    "name": "agentic-wiki",
+    "displayName": "Agentic Wiki",
     "description": "The Agentic Wiki For Your Git Codebase",
     "version": "0.0.1",
+    "publisher": "fine405",
+    "author": {
+        "name": "fine"
+    },
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/fine405/vsc-extension-agentic-wiki"
+    },
+    "homepage": "https://github.com/fine405/vsc-extension-agentic-wiki",
+    "bugs": {
+        "url": "https://github.com/fine405/vsc-extension-agentic-wiki/issues"
+    },
+    "keywords": [
+        "wiki",
+        "documentation",
+        "codebase",
+        "agent",
+        "pocketflow"
+    ],
     "engines": {
         "vscode": "^1.99.0"
     },
     "categories": [
-        "Other"
+        "AI"
     ],
     "activationEvents": [],
+    "icon": "icon.png",
     "main": "./dist/extension.js",
     "contributes": {
         "commands": [
             {
-                "command": "deep-wiki.config",
-                "title": "Deep Wiki: Config"
+                "command": "agentic-wiki.config",
+                "title": "Agentic Wiki: Config"
             },
             {
-                "command": "deep-wiki.generate",
-                "title": "Deep Wiki: Generate"
+                "command": "agentic-wiki.generate",
+                "title": "Agentic Wiki: Generate"
             },
             {
-                "command": "deep-wiki.open",
-                "title": "Deep Wiki: Open"
+                "command": "agentic-wiki.open",
+                "title": "Agentic Wiki: Open"
             }
         ]
     },
     "scripts": {
-        "vscode:prepublish": "pnpm run package",
         "compile": "pnpm run check-types && pnpm run lint && node esbuild.js",
         "watch": "npm-run-all -p watch:*",
         "watch:esbuild": "node esbuild.js --watch",
         "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
-        "package": "pnpm run check-types && pnpm run lint && node esbuild.js --production",
+        "build": "pnpm run check-types && pnpm run lint && node esbuild.js --production",
+        "package": "pnpm vsce package --no-dependencies",
+        "package:pre": "pnpm vsce package --pre-release --no-dependencies",
+        "publish:pre": "pnpm vsce publish --pre-release --no-dependencies",
+        "publish": "pnpm vsce publish --no-dependencies",
         "compile-tests": "tsc -p . --outDir out",
         "watch-tests": "tsc -p . -w --outDir out",
         "pretest": "pnpm run compile-tests && pnpm run compile && pnpm run lint",
