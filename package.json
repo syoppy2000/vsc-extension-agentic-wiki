@@ -21,7 +21,8 @@
         "documentation",
         "codebase",
         "agent",
-        "pocketflow"
+        "pocketflow",
+        "deepwiki"
     ],
     "engines": {
         "vscode": "^1.99.0"
