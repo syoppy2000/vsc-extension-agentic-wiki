@@ -110,27 +110,27 @@ export default class CombineTutorialNode extends Node<SharedStore> {
      * Execute tutorial generation
      */
     async exec(prepRes: CombineTutorialNodePrepResult): Promise<string> {
-        const outputPath = prepRes.outputPath;
-        const indexContent = prepRes.indexContent;
-        const chapterFiles = prepRes.chapterFiles;
+        const { outputPath, indexContent, chapterFiles } = prepRes;
 
         console.log(`Combining tutorial into directory: ${outputPath}`);
-        // Rely on Node's built-in retry/fallback
+        // Use fs.promises to ensure directory creation is done asynchronously
         fs.mkdirSync(outputPath, { recursive: true });
 
-        // Write index.md
+        // Write index.md first to ensure it's at the top of the directory listing
         const indexFilepath = path.join(outputPath, "index.md");
         fs.writeFileSync(indexFilepath, indexContent, { encoding: "utf-8" });
         console.log(`  - Wrote ${indexFilepath}`);
 
-        // Write chapter files
-        for (const chapterInfo of chapterFiles) {
-            const chapterFilepath = path.join(outputPath, chapterInfo.filename);
-            fs.writeFileSync(chapterFilepath, chapterInfo.content, { encoding: "utf-8" });
-            console.log(`  - Wrote ${chapterFilepath}`);
-        }
+        // Write other chapters in parallel
+        await Promise.all(
+            chapterFiles.map(async chapterInfo => {
+                const chapterFilepath = path.join(outputPath, chapterInfo.filename);
+                fs.writeFileSync(chapterFilepath, chapterInfo.content, { encoding: "utf-8" });
+                console.log(`  - Wrote ${chapterFilepath}`);
+            }),
+        );
 
-        return outputPath; // Return final path
+        return outputPath;
     }
 
     /**

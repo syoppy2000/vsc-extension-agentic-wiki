@@ -17,11 +17,12 @@ export function createFlow(): Flow {
     const writeChaptersNode = new WriteChaptersNode();
     const combineTutorialNode = new CombineTutorialNode();
 
-    fetchRepoNode.next(identifyAbstractionNode);
-    identifyAbstractionNode.next(analyzeRelationshipsNode);
-    analyzeRelationshipsNode.next(writeChaptersNode);
-    writeChaptersNode.next(orderChaptersNode);
-    orderChaptersNode.next(combineTutorialNode);
+    fetchRepoNode
+        .next(identifyAbstractionNode)
+        .next(analyzeRelationshipsNode)
+        .next(orderChaptersNode)
+        .next(writeChaptersNode)
+        .next(combineTutorialNode);
 
     return new Flow<SharedStore>(fetchRepoNode);
 }

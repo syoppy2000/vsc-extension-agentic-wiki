@@ -31,24 +31,15 @@ export function registerGenerateCommand(context: vscode.ExtensionContext) {
 
                     // Prepare file path
                     progress.report({ increment: 30, message: "Preparing files..." });
-                    // const wikiPath = getWikiPath();
 
                     const flow = createFlow();
                     let shared = context.globalState.get<SharedStore>(CONFIG_KEY) || ({} as SharedStore);
                     flow.setParams({ ...shared });
                     await flow.run(shared);
-                    console.log(shared);
 
-                    // Ensure wiki directory exists
-                    // await ensureDirectoryExists(wikiPath);
-
-                    // const fileName = `agentic-wiki.md`;
-                    // const filePath = path.join(wikiPath, fileName);
-
-                    // Write to file
                     progress.report({ increment: 30, message: "Writing files..." });
-                    // await vscode.workspace.fs.writeFile(vscode.Uri.file(filePath), Buffer.from(wiki));
                     progress.report({ increment: 10, message: "Wiki page successfully generated!" });
+                    await new Promise(resolve => setTimeout(resolve, 1000));
                     vscode.commands.executeCommand("agentic-wiki.open");
                 } catch (error) {
                     vscode.window.showErrorMessage(

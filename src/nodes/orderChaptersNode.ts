@@ -5,20 +5,20 @@ import { ChapterOrderPreResult, SharedStore } from "../types";
 
 export default class OrderChaptersNode extends Node<SharedStore> {
     async prep(shared: SharedStore): Promise<ChapterOrderPreResult> {
-        const abstractions = shared.abstractions; // 名称/描述可能已翻译
-        const relationships = shared.relationships; // 摘要/标签可能已翻译
+        const abstractions = shared.abstractions; // Names/descriptions may be translated
+        const relationships = shared.relationships; // Summary/labels may be translated
         const projectName = shared.projectName || "";
         const language = shared.language || "english";
         const useCache = shared.useCache !== undefined ? shared.useCache : true;
 
-        // 为 LLM 准备上下文
+        // Prepare context for LLM
         const abstractionInfoForPrompt: string[] = [];
         for (let i = 0; i < abstractions.length; i++) {
-            abstractionInfoForPrompt.push(`- ${i} # ${abstractions[i].name}`); // 使用可能已翻译的名称
+            abstractionInfoForPrompt.push(`- ${i} # ${abstractions[i].name}`); // Use potentially translated names
         }
         const abstractionListing = abstractionInfoForPrompt.join("\n");
 
-        // 使用可能已翻译的摘要和标签
+        // Use potentially translated summary and labels
         let summaryNote = "";
         if (language.toLowerCase() !== "english") {
             summaryNote = ` (Note: Project Summary might be in ${language.charAt(0).toUpperCase() + language.slice(1)})`;
@@ -29,7 +29,7 @@ export default class OrderChaptersNode extends Node<SharedStore> {
         for (const rel of relationships.details) {
             const fromName = abstractions[rel.from].name;
             const toName = abstractions[rel.to].name;
-            // 使用可能已翻译的 'label'
+            // Use potentially translated 'label'
             context += `- From ${rel.from} (${fromName}) to ${rel.to} (${toName}): ${rel.label}\n`;
         }
 
@@ -55,8 +55,8 @@ export default class OrderChaptersNode extends Node<SharedStore> {
 
         console.log("Determining chapter order using LLM...");
 
-        // 无需在提示指令中进行语言变化，只需基于结构进行排序
-        // 输入名称可能已翻译，因此有注释
+        // No need to change language in prompt instructions, just sort based on structure
+        // Input names may be translated, hence the note
         const prompt = `
     Given the following project abstractions and their relationships for the project \`\`\`\` ${projectName} \`\`\`\`:
     
@@ -85,7 +85,7 @@ export default class OrderChaptersNode extends Node<SharedStore> {
             useCache,
         });
 
-        // --- 验证 ---
+        // --- Validation ---
         const yamlStr = response.trim().split("```yaml")[1].split("```")[0].trim();
         const orderedIndicesRaw = YAML.parse(yamlStr) as any[];
 
@@ -123,7 +123,7 @@ export default class OrderChaptersNode extends Node<SharedStore> {
             }
         }
 
-        // 检查是否包含所有抽象
+        // Check if all abstractions are included
         if (orderedIndices.length !== numAbstractions) {
             const missingIndices = [...Array(numAbstractions).keys()].filter(i => !seenIndices.has(i));
 
@@ -133,16 +133,12 @@ export default class OrderChaptersNode extends Node<SharedStore> {
         }
 
         console.log(`Determined chapter order (indices): ${orderedIndices}`);
-        return orderedIndices; // 返回索引列表
+        return orderedIndices; // Return list of indices
     }
 
-    async post(
-        shared: SharedStore,
-        prepRes: [string, string, number, string, string, boolean],
-        execRes: number[],
-    ): Promise<string | undefined> {
-        // execRes 已经是有序索引列表
-        shared.chapterOrder = execRes; // 索引列表
+    async post(shared: SharedStore, _: ChapterOrderPreResult, execRes: number[]): Promise<string | undefined> {
+        // execRes is already the ordered index list
+        shared.chapterOrder = execRes; // Index list
         return undefined;
     }
 }

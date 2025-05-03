@@ -2,10 +2,7 @@ import fs from "fs";
 import path from "path";
 import { minimatch } from "minimatch";
 import ignore from "ignore";
-import debug from "debug";
 import { FileInfo } from "./types";
-
-const logger = debug("crawlLocalFiles");
 
 interface CrawlResult {
     files: FileInfo[];
@@ -41,9 +38,9 @@ export function crawlLocalFiles(
         try {
             const gitignorePatterns = fs.readFileSync(gitignorePath, "utf-8").split("\n");
             gitignoreSpec = ignore().add(gitignorePatterns);
-            logger(`Loaded .gitignore patterns from ${gitignorePath}`);
+            console.log(`Loaded .gitignore patterns from ${gitignorePath}`);
         } catch (e) {
-            logger(`Warning: Unable to read or parse .gitignore file ${gitignorePath}: ${e}`);
+            console.log(`Warning: Unable to read or parse .gitignore file ${gitignorePath}: ${e}`);
         }
     }
     // --- End loading .gitignore ---
@@ -90,16 +87,15 @@ export function crawlLocalFiles(
 
             // Check inclusion patterns
             let included = false;
-            if (includePatterns) {
+            if (!includePatterns || includePatterns?.includes("*")) {
+                included = true;
+            } else {
                 for (const pattern of includePatterns) {
                     if (minimatch(relPath, pattern)) {
                         included = true;
                         break;
                     }
                 }
-            } else {
-                // If no inclusion patterns, include all files not excluded
-                included = true;
             }
 
             // If not included, skip
@@ -117,7 +113,7 @@ export function crawlLocalFiles(
                 const content = fs.readFileSync(itemPath, "utf-8");
                 filesList.push({ path: relPath, content });
             } catch (e) {
-                logger(`Warning: Unable to read file ${itemPath}: ${e}`);
+                console.log(`Warning: Unable to read file ${itemPath}: ${e}`);
             }
         }
     }
@@ -129,7 +125,7 @@ export function crawlLocalFiles(
 }
 
 // Example usage
-//     logger("--- Crawling parent directory ('..') ---");
+//     console.log("--- Crawling parent directory ('..') ---");
 //     const filesData = crawlLocalFiles("..", undefined, [
 //         "*.pyc",
 //         "__pycache__/*",
@@ -138,7 +134,7 @@ export function crawlLocalFiles(
 //         "docs/*",
 //         "output/*",
 //     ]);
-//     logger(`Found ${Object.keys(filesData.files).length} files:`);
+//     console.log(`Found ${Object.keys(filesData.files).length} files:`);
 //     for (const path in filesData.files) {
-//         logger(`  ${path}`);
+//         console.log(`  ${path}`);
 //     }

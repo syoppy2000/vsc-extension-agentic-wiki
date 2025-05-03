@@ -13,13 +13,22 @@ export default class FetchRepoNode extends Node<SharedStore> {
 
     async exec(preRes: SharedStore): Promise<FileInfo[]> {
         console.log(`Fetching directory: ${preRes.localDir}...`);
-        const result = crawlLocalFiles(preRes.localDir);
-        if (result.files.length === 0) {
-            throw new Error("No files found");
+        try {
+            const result = crawlLocalFiles(
+                preRes.localDir,
+                preRes.includePatterns,
+                preRes.excludePatterns,
+                preRes.maxFileSize * 1024,
+            );
+            if (result.files.length === 0) {
+                throw new Error(`No files found in directory: ${preRes.localDir}`);
+            }
+            console.log(`Fetched ${result.files.length} files.`);
+            return result.files;
+        } catch (error) {
+            console.error(`Error fetching files: ${error instanceof Error ? error.message : String(error)}`);
+            throw error;
         }
-        console.log(`Fetched ${result.files.length} files.`);
-        console.log(result.files);
-        return result.files; // Go to the next node
     }
 
     async post(shared: SharedStore, _: unknown, execRes: FileInfo[]): Promise<string | undefined> {

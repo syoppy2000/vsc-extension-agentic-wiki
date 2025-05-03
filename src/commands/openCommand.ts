@@ -7,7 +7,7 @@ export function registerOpenCommand(context: vscode.ExtensionContext) {
     const open = vscode.commands.registerCommand("agentic-wiki.open", async () => {
         try {
             const wikiPath = getWikiPath();
-            const fileName = `agentic-wiki.md`;
+            const fileName = "index.md";
             const filePath = path.join(wikiPath, fileName);
 
             // Check if file exists

@@ -9,26 +9,11 @@ import {
     Relationship,
 } from "../types";
 import { callLlm } from "../callLlm";
-
-/**
- * 获取指定索引的文件内容
- */
-function getContentForIndices(filesData: FileInfo[], indices: number[]): Record<string, string> {
-    const contentMap: Record<string, string> = {};
-
-    for (const i of indices) {
-        if (0 <= i && i < filesData.length) {
-            const file = filesData[i];
-            contentMap[`${i} # ${file.path}`] = file.content;
-        }
-    }
-
-    return contentMap;
-}
+import { getContentForIndices } from "../utils";
 
 export default class AnalyzeRelationshipsNode extends Node<SharedStore> {
     /**
-     * 准备分析关系所需的上下文和数据
+     * Prepare context and data needed for relationship analysis
      */
     async prep(shared: SharedStore): Promise<AnalyzeRelationshipsPrepResult> {
         const abstractions: Abstraction[] = shared.abstractions || [];
@@ -37,35 +22,35 @@ export default class AnalyzeRelationshipsNode extends Node<SharedStore> {
         const language: string = shared.language || "english";
         const useCache: boolean = shared.useCache !== undefined ? shared.useCache : true;
 
-        // 创建带有抽象名称、索引、描述和相关文件片段的上下文
+        // Create context with abstraction names, indices, descriptions, and relevant file snippets
         let context = "Identified Abstractions:\n";
         const allRelevantIndices = new Set<number>();
         const abstractionInfoForPrompt: string[] = [];
 
-        // 处理每个抽象
+        // Process each abstraction
         for (let i = 0; i < abstractions.length; i++) {
             const abstr = abstractions[i];
-            // 使用直接包含索引的'files'
+            // Use 'files' that directly includes indices
             const fileIndicesStr = abstr.files.join(", ");
 
-            // 抽象名称和描述可能已被翻译
+            // Abstraction name and description might be translated
             const infoLine = `- Index ${i}: ${abstr.name} (Relevant file indices: [${fileIndicesStr}])\n  Description: ${abstr.description}`;
             context += infoLine + "\n";
 
-            // 这里也使用可能已翻译的名称
+            // Also use potentially translated names here
             abstractionInfoForPrompt.push(`${i} # ${abstr.name}`);
 
-            // 收集所有相关文件索引
+            // Collect all relevant file indices
             abstr.files.forEach(idx => allRelevantIndices.add(idx));
         }
 
-        // 添加相关文件片段
+        // Add relevant file snippets
         context += "\nRelevant File Snippets (Referenced by Index and Path):\n";
 
-        // 获取相关文件的内容
+        // Get content of relevant files
         const relevantFilesContentMap = getContentForIndices(filesData, Array.from(allRelevantIndices).sort());
 
-        // 格式化文件内容
+        // Format file content
         const fileContextStr = Object.entries(relevantFilesContentMap)
             .map(([idxPath, content]) => `--- File: ${idxPath} ---\n${content}`)
             .join("\n\n");
@@ -84,32 +69,32 @@ export default class AnalyzeRelationshipsNode extends Node<SharedStore> {
     }
 
     /**
-     * 执行关系分析
+     * Execute relationship analysis
      */
     async exec(prepRes: AnalyzeRelationshipsPrepResult): Promise<RelationshipsResult> {
         const { context, abstractionListing, projectName, language, useCache, numAbstractions } = prepRes;
 
-        console.log("使用LLM分析关系...");
+        console.log("Using LLM to analyze relationships...");
 
-        // 构建提示
+        // Build prompt
         const prompt = this.buildPrompt(projectName, abstractionListing, context, language);
 
-        // 调用LLM
+        // Call LLM
         const response = await callLlm(prompt, { useCache, llmApiKey: prepRes.apiKey });
 
-        // 解析和验证响应
+        // Parse and validate response
         const result = this.parseAndValidateResponse(response, numAbstractions);
 
-        console.log("已生成项目摘要和关系详情。");
+        console.log("Project summary and relationship details generated.");
         return result;
     }
 
     /**
-     * 处理结果并存储到共享存储中
+     * Process results and store in shared storage
      */
     async post(shared: SharedStore, _: unknown, execRes: RelationshipsResult): Promise<string | undefined> {
-        // 结构现在是 {"summary": str, "details": [{"from": int, "to": int, "label": str}]}
-        // summary 和 label 可能已被翻译
+        // Structure is now {"summary": str, "details": [{"from": int, "to": int, "label": str}]}
+        // summary and label might be translated
         shared.relationships = execRes;
         return undefined;
     }
@@ -118,25 +103,25 @@ export default class AnalyzeRelationshipsNode extends Node<SharedStore> {
         try {
             return response.trim().split("```yaml")[1].split("```")[0].trim();
         } catch (error) {
-            throw new Error(`无法从LLM响应中提取YAML内容: ${response}`);
+            throw new Error(`Failed to extract YAML content from LLM response: ${response}`);
         }
     }
 
     private validateRelationshipsData(data: any): boolean {
         if (!data || typeof data !== "object") {
-            throw new Error("LLM输出不是一个对象");
+            throw new Error("LLM output is not an object");
         }
 
         if (!("summary" in data) || !("relationships" in data)) {
-            throw new Error("LLM输出缺少必要的键('summary', 'relationships')");
+            throw new Error("LLM output is missing required keys ('summary', 'relationships')");
         }
 
         if (typeof data.summary !== "string") {
-            throw new Error("summary不是字符串");
+            throw new Error("summary is not a string");
         }
 
         if (!Array.isArray(data.relationships)) {
-            throw new Error("relationships不是数组");
+            throw new Error("relationships is not an array");
         }
 
         return true;
@@ -146,7 +131,7 @@ export default class AnalyzeRelationshipsNode extends Node<SharedStore> {
         const validatedRelationships: Relationship[] = [];
 
         for (const rel of relationshipsData.relationships) {
-            // 检查必要的键
+            // Check required keys
             if (
                 !rel ||
                 typeof rel !== "object" ||
@@ -155,33 +140,33 @@ export default class AnalyzeRelationshipsNode extends Node<SharedStore> {
                 !("label" in rel)
             ) {
                 throw new Error(
-                    `缺少键(期望from_abstraction, to_abstraction, label)在关系项中: ${JSON.stringify(rel)}`,
+                    `Missing keys (expected from_abstraction, to_abstraction, label) in relationship item: ${JSON.stringify(rel)}`,
                 );
             }
 
-            // 验证label是字符串
+            // Validate label is string
             if (typeof rel.label !== "string") {
-                throw new Error(`关系标签不是字符串: ${JSON.stringify(rel)}`);
+                throw new Error(`Relationship label is not a string: ${JSON.stringify(rel)}`);
             }
 
-            // 验证索引
+            // Validate indices
             try {
                 const fromIdx = parseInt(String(rel.from_abstraction).split("#")[0].trim());
                 const toIdx = parseInt(String(rel.to_abstraction).split("#")[0].trim());
 
                 if (!(0 <= fromIdx && fromIdx < numAbstractions) || !(0 <= toIdx && toIdx < numAbstractions)) {
                     throw new Error(
-                        `关系中的索引无效: from=${fromIdx}, to=${toIdx}. 最大索引是 ${numAbstractions - 1}.`,
+                        `Invalid indices in relationship: from=${fromIdx}, to=${toIdx}. Maximum index is ${numAbstractions - 1}.`,
                     );
                 }
 
                 validatedRelationships.push({
                     from: fromIdx,
                     to: toIdx,
-                    label: rel.label, // 可能已翻译的标签
+                    label: rel.label, // Potentially translated label
                 });
             } catch (error) {
-                throw new Error(`无法从关系中解析索引: ${JSON.stringify(rel)}`);
+                throw new Error(`Failed to parse indices from relationship: ${JSON.stringify(rel)}`);
             }
         }
 
@@ -195,7 +180,7 @@ export default class AnalyzeRelationshipsNode extends Node<SharedStore> {
         try {
             relationshipsData = YAML.parse(yamlStr);
         } catch (error: any) {
-            throw new Error(`YAML解析失败: ${error.message}\nYAML内容:\n${yamlStr}`);
+            throw new Error(`YAML parsing failed: ${error.message}\nYAML content:\n${yamlStr}`);
         }
 
         this.validateRelationshipsData(relationshipsData);
@@ -208,7 +193,7 @@ export default class AnalyzeRelationshipsNode extends Node<SharedStore> {
     }
 
     private buildPrompt(projectName: string, abstractionListing: string, context: string, language: string): string {
-        // 仅当不是英语时添加语言指令和提示
+        // Only add language instructions and hints when not English
         let languageInstruction = "";
         let langHint = "";
         let listLangNote = "";

@@ -196,11 +196,11 @@
                 function saveConfig() {
                     const newConfig = {
                         llmApiKey: document.getElementById("llmApiKey").value,
-                        localDir: document.getElementById("localDir").value,
+                        localDir: document.getElementById("localDir").value || workspaceFolder,
                         projectName: document.getElementById("projectName").value || null,
                         outputDir: document.getElementById("outputDir").value,
-                        includePatterns: (document.getElementById("includePatterns").value|| []).split(",").map((pattern) => pattern.trim()),
-                        excludePatterns: (document.getElementById("excludePatterns").value||[]).split(",").map((pattern) => pattern.trim()),
+                        includePatterns: (document.getElementById("includePatterns").value || "*").split(",").map((pattern) => pattern.trim()),
+                        excludePatterns: (document.getElementById("excludePatterns").value || "").split(",").map((pattern) => pattern.trim()),
                         maxFileSize: parseInt(document.getElementById("maxFileSize").value, 10),
                         language: document.getElementById("language").value,
                         useCache: document.getElementById("useCache").checked,

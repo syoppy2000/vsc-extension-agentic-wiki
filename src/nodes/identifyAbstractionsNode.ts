@@ -51,15 +51,18 @@ export default class IdentifyAbstractionsNode extends Node<SharedStore> {
     }
 
     private createLlmContext(filesData: FileInfo[]) {
-        let context = "";
+        const contextParts: string[] = [];
         const fileInfo: Array<{ index: number; path: string }> = [];
 
         filesData.forEach((file, index) => {
-            const entry = `--- File Index ${index}: ${file.path} ---\n${file.content}\n\n`;
-            context += entry;
+            contextParts.push(`--- File Index ${index}: ${file.path} ---\n${file.content}\n\n`);
             fileInfo.push({ index, path: file.path });
         });
-        return { context, fileInfo };
+
+        return {
+            context: contextParts.join(""),
+            fileInfo,
+        };
     }
 
     private buildPrompt(

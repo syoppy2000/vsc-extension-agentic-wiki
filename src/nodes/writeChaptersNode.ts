@@ -1,6 +1,7 @@
 import { BatchNode } from "pocketflow";
 import { callLlm } from "../callLlm";
 import { ChapterInfo, ChapterItem, FileInfo, SharedStore } from "../types";
+import { getContentForIndices } from "../utils";
 
 interface WriteChaptersNodePrepResult {
     itemsToProcess: ChapterItem[];
@@ -63,7 +64,7 @@ export default class WriteChaptersNode extends BatchNode<SharedStore> {
                 const relatedFileIndices = abstractionDetails.files || [];
 
                 // Use helper function to get content, passing indices
-                const relatedFilesContentMap = this.getContentForIndices(filesData, relatedFileIndices);
+                const relatedFilesContentMap = getContentForIndices(filesData, relatedFileIndices);
 
                 // Get previous chapter info for transitions (using potentially translated names)
                 let prevChapter = null;
@@ -234,18 +235,5 @@ export default class WriteChaptersNode extends BatchNode<SharedStore> {
         this.chaptersWrittenSoFar = [];
         console.log(`Completed writing ${execResList.length} chapters.`);
         return undefined;
-    }
-
-    private getContentForIndices(filesData: FileInfo[], indices: number[]): Record<string, string> {
-        const contentMap: Record<string, string> = {};
-
-        for (const i of indices) {
-            if (i >= 0 && i < filesData.length) {
-                const { path, content } = filesData[i];
-                contentMap[`${i} # ${path}`] = content; // Use index + path as key for context
-            }
-        }
-
-        return contentMap;
     }
 }

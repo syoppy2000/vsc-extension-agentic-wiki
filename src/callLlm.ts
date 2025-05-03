@@ -45,14 +45,26 @@ export async function callLlm(prompt: string, { useCache = true, llmApiKey }: Op
     let responseText = "";
     try {
         const r = await client.chat.completions.create({
-            model: "google/gemini-2.0-flash-exp:free",
+            model: "deepseek/deepseek-r1:free",
             messages: [{ role: "user", content: prompt }],
         });
-        responseText = r.choices[0].message.content || "";
+
+        // Handle API error response
+        if ("error" in r) {
+            const errorMessage = (r.error as any)?.message || String(r.error);
+            console.error("ERROR", `API returned error: ${errorMessage}`);
+            throw new Error(errorMessage);
+        }
+
+        responseText = r.choices[0]?.message?.content || "";
+        if (!responseText) {
+            console.warn("WARNING", "API returned empty response");
+        }
     } catch (error) {
-        const errorMsg = `LLM API call failed: ${error}`;
-        console.error("ERROR", errorMsg);
-        throw new Error(errorMsg); // Throw error for caller to handle
+        // Handle network/runtime errors
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        console.error("ERROR", `LLM API call failed: ${errorMessage}`);
+        throw new Error(`LLM request failed: ${errorMessage}`);
     }
 
     console.log(`RESPONSE: ${responseText}`);
