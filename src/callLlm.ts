@@ -40,12 +40,12 @@ export async function callLlm(prompt: string, { useCache = true, llmApiKey }: Op
         throw new Error("OPENAI_API_KEY environment variable is not set");
     }
 
-    const client = new OpenAI({ apiKey: llmApiKey, baseURL: "https://api.deepseek.com" });
+    const client = new OpenAI({ apiKey: llmApiKey, baseURL: "https://openrouter.ai/api/v1" });
 
     let responseText = "";
     try {
         const r = await client.chat.completions.create({
-            model: "deepseek-chat",
+            model: "google/gemini-2.0-flash-exp:free",
             messages: [{ role: "user", content: prompt }],
         });
         responseText = r.choices[0].message.content || "";
