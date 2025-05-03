@@ -9,7 +9,8 @@ import {
     Relationship,
 } from "../types";
 import { callLlm } from "../callLlm";
-import { getContentForIndices } from "../utils";
+import { getLanguageInstruction, getLanguageHint, getLanguageListNote } from "../utils/languageUtils";
+import { formatFileContent, formatAbstractionListing } from "../utils/fileUtils";
 
 export default class AnalyzeRelationshipsNode extends Node<SharedStore> {
     /**
@@ -25,7 +26,7 @@ export default class AnalyzeRelationshipsNode extends Node<SharedStore> {
         // Create context with abstraction names, indices, descriptions, and relevant file snippets
         let context = "Identified Abstractions:\n";
         const allRelevantIndices = new Set<number>();
-        const abstractionInfoForPrompt: string[] = [];
+        const abstractionInfoForPrompt: Array<{ index: number; name: string }> = [];
 
         // Process each abstraction
         for (let i = 0; i < abstractions.length; i++) {
@@ -38,7 +39,7 @@ export default class AnalyzeRelationshipsNode extends Node<SharedStore> {
             context += infoLine + "\n";
 
             // Also use potentially translated names here
-            abstractionInfoForPrompt.push(`${i} # ${abstr.name}`);
+            abstractionInfoForPrompt.push({ index: i, name: abstr.name });
 
             // Collect all relevant file indices
             abstr.files.forEach(idx => allRelevantIndices.add(idx));
@@ -47,19 +48,12 @@ export default class AnalyzeRelationshipsNode extends Node<SharedStore> {
         // Add relevant file snippets
         context += "\nRelevant File Snippets (Referenced by Index and Path):\n";
 
-        // Get content of relevant files
-        const relevantFilesContentMap = getContentForIndices(filesData, Array.from(allRelevantIndices).sort());
-
-        // Format file content
-        const fileContextStr = Object.entries(relevantFilesContentMap)
-            .map(([idxPath, content]) => `--- File: ${idxPath} ---\n${content}`)
-            .join("\n\n");
-
-        context += fileContextStr;
+        // Format file content using utility function
+        context += formatFileContent(filesData, Array.from(allRelevantIndices).sort());
 
         return {
             context,
-            abstractionListing: abstractionInfoForPrompt.join("\n"),
+            abstractionListing: formatAbstractionListing(abstractionInfoForPrompt),
             projectName,
             language,
             useCache,
@@ -193,27 +187,20 @@ export default class AnalyzeRelationshipsNode extends Node<SharedStore> {
     }
 
     private buildPrompt(projectName: string, abstractionListing: string, context: string, language: string): string {
-        // Only add language instructions and hints when not English
-        let languageInstruction = "";
-        let langHint = "";
-        let listLangNote = "";
-
-        if (language.toLowerCase() !== "english") {
-            const capitalizedLanguage = language.charAt(0).toUpperCase() + language.slice(1);
-            languageInstruction = `IMPORTANT: Generate the \`summary\` and relationship \`label\` fields in **${capitalizedLanguage}** language. Do NOT use English for these fields.\n\n`;
-            langHint = ` (in ${capitalizedLanguage})`;
-            listLangNote = ` (Names might be in ${capitalizedLanguage})`;
-        }
+        // Use utility functions for language handling
+        const languageInstruction = getLanguageInstruction(language, ["summary", "label"]);
+        const langHint = getLanguageHint(language);
+        const listLangNote = getLanguageListNote(language);
 
         return `
       Based on the following abstractions and relevant code snippets from the project \`${projectName}\`:
-      
+
       List of Abstraction Indices and Names${listLangNote}:
       ${abstractionListing}
-      
+
       Context (Abstractions, Descriptions, Code):
       ${context}
-      
+
       ${languageInstruction}Please provide:
       1. A high-level \`summary\` of the project's main purpose and functionality in a few beginner-friendly sentences${langHint}. Use markdown formatting with **bold** and *italic* text to highlight important concepts.
       2. A list (\`relationships\`) describing the key interactions between these abstractions. For each relationship, specify:
@@ -222,11 +209,11 @@ export default class AnalyzeRelationshipsNode extends Node<SharedStore> {
           - \`label\`: A brief label for the interaction **in just a few words**${langHint} (e.g., "Manages", "Inherits", "Uses").
           Ideally the relationship should be backed by one abstraction calling or passing parameters to another.
           Simplify the relationship and exclude those non-important ones.
-      
+
       IMPORTANT: Make sure EVERY abstraction is involved in at least ONE relationship (either as source or target). Each abstraction index must appear at least once across all relationships.
-      
+
       Format the output as YAML:
-      
+
       \`\`\`yaml
       summary: |
         A brief, simple explanation of the project${langHint}.
@@ -240,7 +227,7 @@ export default class AnalyzeRelationshipsNode extends Node<SharedStore> {
           label: "Provides config"${langHint}
         # ... other relationships
       \`\`\`
-      
+
       Now, provide the YAML output:`;
     }
 }

@@ -3,6 +3,7 @@ import * as path from "path";
 import * as fs from "fs";
 import { GlobalConfig } from "../types";
 import { CONFIG_KEY, DEFAULT_CONFIG, OUTPUT_DIR } from "../constants";
+import { secretsManager } from "../extension";
 
 export function registerConfigCommand(context: vscode.ExtensionContext) {
     const config = vscode.commands.registerCommand("agentic-wiki.config", async () => {
@@ -32,6 +33,7 @@ class ConfigPanel {
         this.context = context;
         const savedConfig = context.globalState.get<GlobalConfig>(CONFIG_KEY) || {};
 
+        // Initialize with default config and saved config
         this.config = Object.assign(
             {},
             DEFAULT_CONFIG,
@@ -40,6 +42,9 @@ class ConfigPanel {
                 Object.entries(savedConfig).filter(([_, value]) => typeof value === "boolean" || !!value),
             ),
         );
+
+        // We'll load the API key asynchronously
+        this.initializeApiKey();
 
         // Create WebView panel
         this.panel = vscode.window.createWebviewPanel(
@@ -78,13 +83,41 @@ class ConfigPanel {
     }
 
     /**
+     * Initialize API key from secure storage
+     */
+    private async initializeApiKey() {
+        try {
+            // Get API key from secure storage
+            const apiKey = await secretsManager.getApiKey();
+            this.config.llmApiKey = apiKey;
+
+            // Update the webview if it's already initialized
+            if (this.panel && this.panel.webview) {
+                this.panel.webview.postMessage({
+                    command: "updateApiKey",
+                    apiKey,
+                });
+            }
+        } catch (error) {
+            console.error("Error loading API key from secure storage:", error);
+        }
+    }
+
+    /**
      * Save configuration
      */
     private async saveConfig(config: GlobalConfig) {
         console.log("Saving configuration", config);
         try {
-            // Save configuration
-            await this.context.globalState.update(CONFIG_KEY, config);
+            // Extract API key and store it securely
+            const apiKey = config.llmApiKey || "";
+            await secretsManager.storeApiKey(apiKey);
+
+            // Remove API key from the config object before storing in global state
+            const configWithoutApiKey = { ...config, llmApiKey: "" };
+
+            // Save configuration without API key
+            await this.context.globalState.update(CONFIG_KEY, configWithoutApiKey);
             vscode.window.showInformationMessage("Configuration saved");
             this.panel.dispose(); // Close panel after saving
         } catch (error) {

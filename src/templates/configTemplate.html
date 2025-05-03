@@ -125,8 +125,8 @@
             <div class="form-group">
                 <label for="language">Output Language</label>
                 <select id="language">
-                    <option value="中文">中文</option>
                     <option value="English">English</option>
+                    <option value="中文">中文</option>
                     <option value="日本語">日本語</option>
                     <option value="Español">Español</option>
                     <option value="Français">Français</option>
@@ -162,6 +162,16 @@
                 // Initialize configuration
                 const config = ${configJson};
                 const workspaceFolder = `${workspaceFolder}`;
+
+                // Handle messages from extension
+                window.addEventListener('message', event => {
+                    const message = event.data;
+                    switch (message.command) {
+                        case 'updateApiKey':
+                            document.getElementById("llmApiKey").value = message.apiKey || "";
+                            break;
+                    }
+                });
 
                 // Fill the form
                 document.addEventListener("DOMContentLoaded", () => {

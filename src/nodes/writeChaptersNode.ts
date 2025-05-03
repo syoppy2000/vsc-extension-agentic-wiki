@@ -1,7 +1,9 @@
 import { BatchNode } from "pocketflow";
 import { callLlm } from "../callLlm";
-import { ChapterInfo, ChapterItem, FileInfo, SharedStore } from "../types";
+import { ChapterInfo, ChapterItem, SharedStore } from "../types";
 import { getContentForIndices } from "../utils";
+import { getChapterLanguageContext, capitalizeFirstLetter } from "../utils/languageUtils";
+import { formatContentMap, createSafeFilename } from "../utils/fileUtils";
 
 interface WriteChaptersNodePrepResult {
     itemsToProcess: ChapterItem[];
@@ -34,8 +36,7 @@ export default class WriteChaptersNode extends BatchNode<SharedStore> {
                 const chapterName = abstractions[abstractionIndex].name; // Name may be translated
 
                 // Create safe filename (from potentially translated name)
-                const safeName = chapterName.replace(/[^a-zA-Z0-9]/g, "_").toLowerCase();
-                const filename = `${(i + 1).toString().padStart(2, "0")}_${safeName}.md`;
+                const filename = createSafeFilename(chapterName, i);
 
                 // Use link format (with potentially translated name)
                 allChapters.push(`${chapterNum}. [${chapterName}](${filename})`);
@@ -114,41 +115,25 @@ export default class WriteChaptersNode extends BatchNode<SharedStore> {
 
         console.log(`Using LLM to write Chapter ${chapterNum}: ${abstractionName}...`);
 
-        // Prepare file context string from mapping
-        const fileContextStr = Object.entries(item.relatedFilesContentMap)
-            .map(([idxPath, content]) => {
-                const path = idxPath.includes("# ") ? idxPath.split("# ")[1] : idxPath;
-                return `--- File: ${path} ---\n${content}`;
-            })
-            .join("\n\n");
+        // Prepare file context string from mapping using utility function
+        const fileContextStr = formatContentMap(item.relatedFilesContentMap);
 
         // Get summary of chapters written before this one
         // Use temporary instance variable
         const previousChaptersSummary = this.chaptersWrittenSoFar.join("\n---\n");
 
-        // Only add language instructions and context notes when not English
-        let languageInstruction = "";
-        let conceptDetailsNote = "";
-        let structureNote = "";
-        let prevSummaryNote = "";
-        let instructionLangNote = "";
-        let mermaidLangNote = "";
-        let codeCommentNote = "";
-        let linkLangNote = "";
-        let toneNote = "";
-
-        if (language.toLowerCase() !== "english") {
-            const langCap = language.charAt(0).toUpperCase() + language.slice(1);
-            languageInstruction = `IMPORTANT: Write the entire tutorial chapter in **${langCap}**. Some input context (like concept names, descriptions, chapter list, previous summaries) may already be in ${langCap}, but you must translate all other generated content (including explanations, examples, technical terms, and possible code comments) into ${langCap}. Do not use English except for code syntax, necessary proper nouns, or specifically designated content. The entire output must be in ${langCap}.\n\n`;
-            conceptDetailsNote = ` (Note: ${langCap} version provided)`;
-            structureNote = ` (Note: chapter names may be in ${langCap})`;
-            prevSummaryNote = ` (Note: this summary may be in ${langCap})`;
-            instructionLangNote = ` (in ${langCap})`;
-            mermaidLangNote = ` (if appropriate, use ${langCap} for labels/text)`;
-            codeCommentNote = ` (translate to ${langCap} if possible, otherwise keep minimal English for clarity)`;
-            linkLangNote = ` (use ${langCap} chapter titles from the structure above)`;
-            toneNote = ` (suitable for ${langCap} readers)`;
-        }
+        // Use utility function to get language context
+        const {
+            languageInstruction,
+            conceptDetailsNote,
+            structureNote,
+            prevSummaryNote,
+            instructionLangNote,
+            mermaidLangNote,
+            codeCommentNote,
+            linkLangNote,
+            toneNote,
+        } = getChapterLanguageContext(language);
 
         const prompt = `
     ${languageInstruction}Write a very beginner-friendly tutorial chapter (in Markdown format) for project \`${projectName}\` about the concept: "${abstractionName}". This is Chapter ${chapterNum}.
@@ -167,7 +152,7 @@ export default class WriteChaptersNode extends BatchNode<SharedStore> {
     Related code snippets (code itself remains unchanged):
     ${fileContextStr || "No specific code snippets provided for this abstraction."}
 
-    Chapter guidelines (generate content in ${language.charAt(0).toUpperCase() + language.slice(1)} unless otherwise specified):
+    Chapter guidelines (generate content in ${capitalizeFirstLetter(language)} unless otherwise specified):
     - Start with a clear title (e.g., \`# Chapter ${chapterNum}: ${abstractionName}\`). Use the provided concept name.
 
     - If this is not the first chapter, begin with a brief transition referencing the previous chapter${instructionLangNote}, using appropriate Markdown links and its name${linkLangNote}.
@@ -228,7 +213,11 @@ export default class WriteChaptersNode extends BatchNode<SharedStore> {
         return finalContent; // Return Markdown string (may be translated)
     }
 
-    async post(shared: SharedStore, prepRes: ChapterItem[], execResList: string[]): Promise<string | undefined> {
+    async post(
+        shared: SharedStore,
+        _: WriteChaptersNodePrepResult,
+        execResList: string[],
+    ): Promise<string | undefined> {
         // execResList contains generated Markdown for each chapter, in order
         shared.chapters = execResList;
         // Clean up temporary instance variable

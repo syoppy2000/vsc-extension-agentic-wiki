@@ -2,6 +2,8 @@ import { Node } from "pocketflow";
 import YAML from "yaml";
 import { callLlm } from "../callLlm";
 import { ChapterOrderPreResult, SharedStore } from "../types";
+import { getLanguageListNote, capitalizeFirstLetter } from "../utils/languageUtils";
+import { formatAbstractionListing } from "../utils/fileUtils";
 
 export default class OrderChaptersNode extends Node<SharedStore> {
     async prep(shared: SharedStore): Promise<ChapterOrderPreResult> {
@@ -12,16 +14,16 @@ export default class OrderChaptersNode extends Node<SharedStore> {
         const useCache = shared.useCache !== undefined ? shared.useCache : true;
 
         // Prepare context for LLM
-        const abstractionInfoForPrompt: string[] = [];
+        const abstractionInfoForPrompt: Array<{ index: number; name: string }> = [];
         for (let i = 0; i < abstractions.length; i++) {
-            abstractionInfoForPrompt.push(`- ${i} # ${abstractions[i].name}`); // Use potentially translated names
+            abstractionInfoForPrompt.push({ index: i, name: abstractions[i].name }); // Use potentially translated names
         }
-        const abstractionListing = abstractionInfoForPrompt.join("\n");
+        const abstractionListing = formatAbstractionListing(abstractionInfoForPrompt);
 
         // Use potentially translated summary and labels
         let summaryNote = "";
         if (language.toLowerCase() !== "english") {
-            summaryNote = ` (Note: Project Summary might be in ${language.charAt(0).toUpperCase() + language.slice(1)})`;
+            summaryNote = ` (Note: Project Summary might be in ${capitalizeFirstLetter(language)})`;
         }
 
         let context = `Project Summary${summaryNote}:\n${relationships.summary}\n\n`;
@@ -33,10 +35,7 @@ export default class OrderChaptersNode extends Node<SharedStore> {
             context += `- From ${rel.from} (${fromName}) to ${rel.to} (${toName}): ${rel.label}\n`;
         }
 
-        let listLangNote = "";
-        if (language.toLowerCase() !== "english") {
-            listLangNote = ` (Names might be in ${language.charAt(0).toUpperCase() + language.slice(1)})`;
-        }
+        const listLangNote = getLanguageListNote(language);
         const apiKey = shared.llmApiKey;
 
         return {
@@ -59,25 +58,25 @@ export default class OrderChaptersNode extends Node<SharedStore> {
         // Input names may be translated, hence the note
         const prompt = `
     Given the following project abstractions and their relationships for the project \`\`\`\` ${projectName} \`\`\`\`:
-    
+
     Abstractions (Index # Name)${listLangNote}:
     ${abstractionListing}
-    
+
     Context about relationships and project summary:
     ${context}
-    
+
     If you are going to make a tutorial for \`\`\`\` ${projectName} \`\`\`\`, what is the best order to explain these abstractions, from first to last?
     Ideally, first explain those that are the most important or foundational, perhaps user-facing concepts or entry points. Then move to more detailed, lower-level implementation details or supporting concepts.
-    
+
     Output the ordered list of abstraction indices, including the name in a comment for clarity. Use the format \`idx # AbstractionName\`.
-    
+
     \`\`\`yaml
     - 2 # FoundationalConcept
     - 0 # CoreClassA
     - 1 # CoreClassB (uses CoreClassA)
     - ...
     \`\`\`
-    
+
     Now, provide the YAML output:
     `;
         const response = await callLlm(prompt, {

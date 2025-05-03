@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import { CONFIG_KEY } from "../constants";
 import { createFlow } from "../flow";
 import { SharedStore } from "../types";
+import { secretsManager } from "../extension";
 
 export function registerGenerateCommand(context: vscode.ExtensionContext) {
     const generate = vscode.commands.registerCommand("agentic-wiki.generate", async () => {
@@ -32,9 +33,17 @@ export function registerGenerateCommand(context: vscode.ExtensionContext) {
                     // Prepare file path
                     progress.report({ increment: 30, message: "Preparing files..." });
 
+                    // Get API key from secure storage
+                    const apiKey = await secretsManager.getApiKey();
+                    if (!apiKey) {
+                        throw new Error("API key is not set. Please configure your API key in the extension settings.");
+                    }
+
                     const flow = createFlow();
                     let shared = context.globalState.get<SharedStore>(CONFIG_KEY) || ({} as SharedStore);
-                    flow.setParams({ ...shared });
+
+                    // Add API key to flow parameters but not to shared state
+                    flow.setParams({ ...shared, llmApiKey: apiKey });
                     await flow.run(shared);
 
                     progress.report({ increment: 30, message: "Writing files..." });

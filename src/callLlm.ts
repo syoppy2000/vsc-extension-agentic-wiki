@@ -1,10 +1,11 @@
 import { OpenAI } from "openai";
 import fs from "fs";
+import { secretsManager } from "./extension";
 
 const cacheFile = "llm_cache.json";
 
 interface Options {
-    llmApiKey: string;
+    llmApiKey?: string;
     useCache?: boolean;
 }
 
@@ -36,11 +37,17 @@ export async function callLlm(prompt: string, { useCache = true, llmApiKey }: Op
         }
     }
 
-    if (!llmApiKey) {
-        throw new Error("OPENAI_API_KEY environment variable is not set");
+    // Get API key from secure storage if not provided
+    let apiKey = llmApiKey;
+    if (!apiKey) {
+        apiKey = await secretsManager.getApiKey();
     }
 
-    const client = new OpenAI({ apiKey: llmApiKey, baseURL: "https://openrouter.ai/api/v1" });
+    if (!apiKey) {
+        throw new Error("API key is not set. Please configure your API key in the extension settings.");
+    }
+
+    const client = new OpenAI({ apiKey, baseURL: "https://openrouter.ai/api/v1" });
 
     let responseText = "";
     try {

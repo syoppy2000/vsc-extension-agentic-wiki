@@ -3,6 +3,8 @@ import YAML from "yaml";
 
 import { Abstraction, FileInfo, IdentifyAbstractionsPrepResult, SharedStore } from "../types";
 import { callLlm } from "../callLlm";
+import { getLanguageInstruction, getLanguageHint } from "../utils/languageUtils";
+import { formatAbstractionListing } from "../utils/fileUtils";
 
 export default class IdentifyAbstractionsNode extends Node<SharedStore> {
     // Build LLM context and parameters
@@ -18,7 +20,7 @@ export default class IdentifyAbstractionsNode extends Node<SharedStore> {
         }
 
         const { context, fileInfo } = this.createLlmContext(filesData);
-        const fileListingForPrompt = fileInfo.map(({ index, path }) => `- ${index} # ${path}`).join("\n");
+        const fileListingForPrompt = formatAbstractionListing(fileInfo);
 
         return {
             context,
@@ -72,16 +74,10 @@ export default class IdentifyAbstractionsNode extends Node<SharedStore> {
         maxAbstractionNum: number,
         fileListingForPrompt: string,
     ): string {
-        let languageInstruction = "";
-        let nameLangHint = "";
-        let descLangHint = "";
-        const capitalizedLanguage = language.charAt(0).toUpperCase() + language.slice(1);
-
-        if (language.toLowerCase() !== "english") {
-            languageInstruction = `IMPORTANT: Generate the \`name\` and \`description\` for each abstraction in **${capitalizedLanguage}** language. Do NOT use English for these fields.\n\n`;
-            nameLangHint = ` (value in ${capitalizedLanguage})`;
-            descLangHint = ` (value in ${capitalizedLanguage})`;
-        }
+        // Use utility functions for language handling
+        const languageInstruction = getLanguageInstruction(language, ["name", "description"]);
+        const nameLangHint = getLanguageHint(language, " (value in");
+        const descLangHint = getLanguageHint(language, " (value in");
 
         return `
 For the project \`${projectName}\`:
