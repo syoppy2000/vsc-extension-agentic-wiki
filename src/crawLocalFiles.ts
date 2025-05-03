@@ -12,13 +12,13 @@ interface CrawlResult {
 }
 
 /**
- * 爬取本地目录中的文件，使用类似于 crawlGithubFiles 的接口
- * @param directory 本地目录路径
- * @param includePatterns 要包含的文件模式（例如 ["*.py", "*.js"]）
- * @param excludePatterns 要排除的文件模式（例如 ["tests/*"]）
- * @param maxFileSize 最大文件大小（字节）
- * @param useRelativePaths 是否使用相对于目录的路径
- * @returns {CrawlResult} 包含文件路径和内容的对象
+ * Crawl files in a local directory, using an interface similar to crawlGithubFiles
+ * @param directory Local directory path
+ * @param includePatterns File patterns to include (e.g., ["*.py", "*.js"])
+ * @param excludePatterns File patterns to exclude (e.g., ["tests/*"])
+ * @param maxFileSize Maximum file size (bytes)
+ * @param useRelativePaths Whether to use paths relative to the directory
+ * @returns {CrawlResult} Object containing file paths and contents
  */
 export function crawlLocalFiles(
     directory: string,
@@ -28,12 +28,12 @@ export function crawlLocalFiles(
     useRelativePaths: boolean = true,
 ): CrawlResult {
     if (!fs.existsSync(directory) || !fs.statSync(directory).isDirectory()) {
-        throw new Error(`目录不存在: ${directory}`);
+        throw new Error(`Directory does not exist: ${directory}`);
     }
 
     const filesList: FileInfo[] = [];
 
-    // --- 加载 .gitignore ---
+    // --- Load .gitignore ---
     const gitignorePath = path.join(directory, ".gitignore");
     let gitignoreSpec: ReturnType<typeof ignore> | null = null;
 
@@ -41,14 +41,14 @@ export function crawlLocalFiles(
         try {
             const gitignorePatterns = fs.readFileSync(gitignorePath, "utf-8").split("\n");
             gitignoreSpec = ignore().add(gitignorePatterns);
-            logger(`已加载 .gitignore 模式，来自 ${gitignorePath}`);
+            logger(`Loaded .gitignore patterns from ${gitignorePath}`);
         } catch (e) {
-            logger(`警告: 无法读取或解析 .gitignore 文件 ${gitignorePath}: ${e}`);
+            logger(`Warning: Unable to read or parse .gitignore file ${gitignorePath}: ${e}`);
         }
     }
-    // --- 结束加载 .gitignore ---
+    // --- End loading .gitignore ---
 
-    // 递归遍历目录
+    // Recursively traverse directory
     function traverseDirectory(currentPath: string) {
         const items = fs.readdirSync(currentPath);
 
@@ -56,18 +56,18 @@ export function crawlLocalFiles(
             const itemPath = path.join(currentPath, item);
             const stats = fs.statSync(itemPath);
 
-            // 获取相对路径
+            // Get relative path
             const relPath = useRelativePaths ? path.relative(directory, itemPath) : itemPath;
 
-            // --- 排除检查 ---
+            // --- Exclusion checks ---
             let excluded = false;
 
-            // 1. 首先检查 .gitignore
+            // 1. First check .gitignore
             if (gitignoreSpec && gitignoreSpec.ignores(relPath)) {
                 excluded = true;
             }
 
-            // 2. 如果没有被 .gitignore 排除，则检查标准排除模式
+            // 2. If not excluded by .gitignore, check standard exclusion patterns
             if (!excluded && excludePatterns) {
                 for (const pattern of excludePatterns) {
                     if (minimatch(relPath, pattern)) {
@@ -77,18 +77,18 @@ export function crawlLocalFiles(
                 }
             }
 
-            // 如果是目录且未被排除，则递归遍历
+            // If it's a directory and not excluded, traverse recursively
             if (stats.isDirectory() && !excluded) {
                 traverseDirectory(itemPath);
                 continue;
             }
 
-            // 如果不是文件或已被排除，则跳过
+            // If not a file or already excluded, skip
             if (!stats.isFile() || excluded) {
                 continue;
             }
 
-            // 检查包含模式
+            // Check inclusion patterns
             let included = false;
             if (includePatterns) {
                 for (const pattern of includePatterns) {
@@ -98,38 +98,38 @@ export function crawlLocalFiles(
                     }
                 }
             } else {
-                // 如果没有包含模式，则包含所有未被排除的文件
+                // If no inclusion patterns, include all files not excluded
                 included = true;
             }
 
-            // 如果未包含，则跳过
+            // If not included, skip
             if (!included) {
                 continue;
             }
 
-            // 检查文件大小
+            // Check file size
             if (maxFileSize && stats.size > maxFileSize) {
                 continue;
             }
 
-            // 读取文件内容
+            // Read file content
             try {
                 const content = fs.readFileSync(itemPath, "utf-8");
                 filesList.push({ path: relPath, content });
             } catch (e) {
-                logger(`警告: 无法读取文件 ${itemPath}: ${e}`);
+                logger(`Warning: Unable to read file ${itemPath}: ${e}`);
             }
         }
     }
 
-    // 开始遍历
+    // Start traversal
     traverseDirectory(directory);
 
     return { files: filesList };
 }
 
-// 示例用法
-//     logger("--- 爬取父目录 ('..') ---");
+// Example usage
+//     logger("--- Crawling parent directory ('..') ---");
 //     const filesData = crawlLocalFiles("..", undefined, [
 //         "*.pyc",
 //         "__pycache__/*",
@@ -138,7 +138,7 @@ export function crawlLocalFiles(
 //         "docs/*",
 //         "output/*",
 //     ]);
-//     logger(`找到 ${Object.keys(filesData.files).length} 个文件:`);
+//     logger(`Found ${Object.keys(filesData.files).length} files:`);
 //     for (const path in filesData.files) {
 //         logger(`  ${path}`);
 //     }

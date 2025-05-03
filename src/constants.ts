@@ -3,7 +3,7 @@ import { GlobalConfig } from "./types";
 export const CONFIG_KEY = "deep-wiki.config";
 export const OUTPUT_DIR = "deep-wiki";
 
-// 默认包含模式
+// Default inclusion patterns
 const DEFAULT_INCLUDE_PATTERNS = [
     "*.py",
     "*.js",
@@ -25,7 +25,7 @@ const DEFAULT_INCLUDE_PATTERNS = [
     "*.yaml",
     "*.yml",
 ];
-// 默认排除模式
+// Default exclusion patterns
 const DEFAULT_EXCLUDE_PATTERNS = [
     "assets/*",
     "data/*",

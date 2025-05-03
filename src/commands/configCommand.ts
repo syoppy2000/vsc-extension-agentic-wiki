@@ -7,11 +7,13 @@ import { CONFIG_KEY, DEFAULT_CONFIG, OUTPUT_DIR } from "../constants";
 export function registerConfigCommand(context: vscode.ExtensionContext) {
     const config = vscode.commands.registerCommand("deep-wiki.config", async () => {
         try {
-            // 创建并显示配置表单
+            // Create and display configuration form
             const configPanel = new ConfigPanel(context);
             configPanel.show();
         } catch (error) {
-            vscode.window.showErrorMessage(`配置失败: ${error instanceof Error ? error.message : String(error)}`);
+            vscode.window.showErrorMessage(
+                `Configuration failed: ${error instanceof Error ? error.message : String(error)}`,
+            );
         }
     });
 
@@ -19,7 +21,7 @@ export function registerConfigCommand(context: vscode.ExtensionContext) {
 }
 
 /**
- * 配置面板类
+ * Configuration panel class
  */
 class ConfigPanel {
     private panel: vscode.WebviewPanel;
@@ -39,17 +41,22 @@ class ConfigPanel {
             ),
         );
 
-        // 创建 WebView 面板
-        this.panel = vscode.window.createWebviewPanel("deepWikiConfig", "Deep Wiki 配置", vscode.ViewColumn.One, {
-            enableScripts: true,
-            retainContextWhenHidden: true,
-            localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, "media"))],
-        });
+        // Create WebView panel
+        this.panel = vscode.window.createWebviewPanel(
+            "deepWikiConfig",
+            "Deep Wiki Configuration",
+            vscode.ViewColumn.One,
+            {
+                enableScripts: true,
+                retainContextWhenHidden: true,
+                localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, "media"))],
+            },
+        );
 
-        // 设置 WebView 内容
+        // Set WebView content
         this.panel.webview.html = this.getWebviewContent();
 
-        // 处理来自 WebView 的消息
+        // Handle messages from WebView
         this.panel.webview.onDidReceiveMessage(
             async message => {
                 switch (message.command) {
@@ -64,45 +71,47 @@ class ConfigPanel {
     }
 
     /**
-     * 显示配置面板
+     * Display configuration panel
      */
     public show() {
         this.panel.reveal();
     }
 
     /**
-     * 保存配置
+     * Save configuration
      */
     private async saveConfig(config: GlobalConfig) {
-        console.log("保存配置", config);
+        console.log("Saving configuration", config);
         try {
-            // 保存配置
+            // Save configuration
             await this.context.globalState.update(CONFIG_KEY, config);
-            vscode.window.showInformationMessage("配置已保存");
-            this.panel.dispose(); // 保存后关闭面板
+            vscode.window.showInformationMessage("Configuration saved");
+            this.panel.dispose(); // Close panel after saving
         } catch (error) {
-            vscode.window.showErrorMessage(`保存配置失败: ${error instanceof Error ? error.message : String(error)}`);
+            vscode.window.showErrorMessage(
+                `Failed to save configuration: ${error instanceof Error ? error.message : String(error)}`,
+            );
         }
     }
 
     /**
-     * 获取 WebView 内容
+     * Get WebView content
      */
     private getWebviewContent() {
-        // 将配置对象转换为 JSON 字符串，用于初始化表单
+        // Convert configuration object to JSON string for form initialization
         const configJson = JSON.stringify(this.config);
 
-        // 获取当前工作区文件夹
+        // Get current workspace folder
         let workspaceFolder = "";
         if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
             workspaceFolder = vscode.workspace.workspaceFolders[0].uri.fsPath;
         }
 
-        // 读取HTML模板文件
+        // Read HTML template file
         const templatePath = path.join(this.context.extensionPath, "src/templates/configTemplate.html");
         let templateContent = fs.readFileSync(templatePath, "utf8");
 
-        // 替换模板中的变量
+        // Replace variables in the template
         templateContent = templateContent
             .replace("${configJson}", configJson)
             .replace("${workspaceFolder}", workspaceFolder);

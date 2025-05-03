@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="en">
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Deep Wiki 配置</title>
+        <title>Deep Wiki Configuration</title>
         <style>
             body {
                 font-family: var(--vscode-font-family);
@@ -74,56 +74,56 @@
     </head>
     <body>
         <div class="form-container">
-            <h1>Deep Wiki 配置</h1>
+            <h1>Deep Wiki Configuration</h1>
 
-            <h2 class="section-title">LLM 配置</h2>
+            <h2 class="section-title">LLM Configuration</h2>
             <div class="form-group">
                 <label for="llmApiKey">API Key</label>
                 <input type="password" id="llmApiKey" />
-                <div class="description">用于访问 LLM API 的密钥</div>
+                <div class="description">API key for accessing the LLM API</div>
             </div>
 
-            <h2 class="section-title">项目配置</h2>
+            <h2 class="section-title">Project Configuration</h2>
             <div class="form-group">
-                <label for="localDir">本地目录路径</label>
+                <label for="localDir">Local Directory Path</label>
                 <input type="text" id="localDir" />
-                <div class="description">项目的本地目录路径</div>
+                <div class="description">Local directory path of the project</div>
             </div>
 
             <div class="form-group">
-                <label for="projectName">项目名称 (可选)</label>
+                <label for="projectName">Project Name (optional)</label>
                 <input type="text" id="projectName" />
-                <div class="description">项目的名称，留空将使用目录名</div>
+                <div class="description">Name of the project, leave empty to use directory name</div>
             </div>
 
             <div class="form-group">
-                <label for="outputDir">输出目录路径</label>
+                <label for="outputDir">Output Directory Path</label>
                 <input type="text" id="outputDir" />
-                <div class="description">生成的 Wiki 输出目录</div>
+                <div class="description">Output directory for the generated Wiki</div>
             </div>
 
-            <h2 class="section-title">文件过滤</h2>
+            <h2 class="section-title">File Filtering</h2>
             <div class="form-group">
-                <label for="includePatterns">包含模式</label>
-                <textarea id="includePatterns" placeholder="例如: *.py, *.js"></textarea>
-                <div class="description">要包含的文件模式，使用逗号分隔</div>
-            </div>
-
-            <div class="form-group">
-                <label for="excludePatterns">排除模式</label>
-                <textarea id="excludePatterns" placeholder="例如: node_modules/*, .git/*"></textarea>
-                <div class="description">要排除的文件模式，使用逗号分隔</div>
+                <label for="includePatterns">Include Patterns</label>
+                <textarea id="includePatterns" placeholder="e.g.: *.py, *.js"></textarea>
+                <div class="description">File patterns to include, separated by commas</div>
             </div>
 
             <div class="form-group">
-                <label for="maxFileSize">最大文件大小 (KB)</label>
+                <label for="excludePatterns">Exclude Patterns</label>
+                <textarea id="excludePatterns" placeholder="e.g.: node_modules/*, .git/*"></textarea>
+                <div class="description">File patterns to exclude, separated by commas</div>
+            </div>
+
+            <div class="form-group">
+                <label for="maxFileSize">Maximum File Size (KB)</label>
                 <input type="number" id="maxFileSize" min="1" />
-                <div class="description">处理的最大文件大小，单位为 KB</div>
+                <div class="description">Maximum file size to process, in KB</div>
             </div>
 
-            <h2 class="section-title">其他设置</h2>
+            <h2 class="section-title">Other Settings</h2>
             <div class="form-group">
-                <label for="language">输出语言</label>
+                <label for="language">Output Language</label>
                 <select id="language">
                     <option value="中文">中文</option>
                     <option value="English">English</option>
@@ -132,46 +132,46 @@
                     <option value="Français">Français</option>
                     <option value="Deutsch">Deutsch</option>
                 </select>
-                <div class="description">生成的 Wiki 使用的语言</div>
+                <div class="description">Language used for the generated Wiki</div>
             </div>
 
             <div class="form-group">
                 <label class="checkbox-label" for="useCache">
                     <input type="checkbox" id="useCache" />
-                    使用缓存
+                    Use Cache
                 </label>
-                <div class="description">是否使用缓存加速生成过程</div>
+                <div class="description">Whether to use cache to speed up the generation process</div>
             </div>
 
             <div class="form-group">
-                <label for="maxAbstractionNum">最大抽象数量</label>
+                <label for="maxAbstractionNum">Maximum Number of Abstractions</label>
                 <input type="number" id="maxAbstractionNum" min="1" />
-                <div class="description">生成的最大抽象概念数量</div>
+                <div class="description">Maximum number of abstraction concepts to generate</div>
             </div>
 
             <div class="button-container">
-                <button id="saveButton">保存配置</button>
+                <button id="saveButton">Save Configuration</button>
             </div>
         </div>
 
         <script>
             (function () {
-                // 获取 VS Code API
+                // Get VS Code API
                 const vscode = acquireVsCodeApi();
 
-                // 初始化配置
+                // Initialize configuration
                 const config = ${configJson};
                 const workspaceFolder = `${workspaceFolder}`;
 
-                // 填充表单
+                // Fill the form
                 document.addEventListener("DOMContentLoaded", () => {
-                    // 设置其他字段的值
+                    // Set values for other fields
                     document.getElementById("llmApiKey").value = config.llmApiKey || "";
                     document.getElementById("localDir").value = config.localDir || workspaceFolder;
                     document.getElementById("projectName").value = config.projectName || "";
                     document.getElementById("outputDir").value = config.outputDir || "";
 
-                    // 处理包含和排除模式
+                    // Handle include and exclude patterns
                     if (Array.isArray(config.includePatterns)) {
                         document.getElementById("includePatterns").value = config.includePatterns.join(", ");
                     }
@@ -188,11 +188,11 @@
                     document.getElementById("useCache").checked = config.useCache !== false;
                     document.getElementById("maxAbstractionNum").value = config.maxAbstractionNum || 10;
 
-                    // 保存按钮点击事件
+                    // Save button click event
                     document.getElementById("saveButton").addEventListener("click", saveConfig);
                 });
 
-                // 保存配置
+                // Save configuration
                 function saveConfig() {
                     const newConfig = {
                         llmApiKey: document.getElementById("llmApiKey").value,
@@ -207,7 +207,7 @@
                         maxAbstractionNum: parseInt(document.getElementById("maxAbstractionNum").value, 10),
                     };
 
-                    // 发送消息到扩展
+                    // Send message to extension
                     vscode.postMessage({
                         command: "saveConfig",
                         config: newConfig,

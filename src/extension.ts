@@ -6,12 +6,12 @@ import { registerConfigCommand } from "./commands/configCommand";
 export function activate(context: vscode.ExtensionContext) {
     console.log('Congratulations, your extension "deep-wiki" is now active!');
 
-    // 注册命令
+    // Register commands
     registerGenerateCommand(context);
     registerOpenCommand(context);
     registerConfigCommand(context);
 
-    // 如果未来有更多命令，只需在此处添加导入和调用即可
+    // If there are more commands in the future, just add imports and calls here
     // import { registerAnotherCommand } from './commands/anotherCommand';
     // registerAnotherCommand(context);
 }

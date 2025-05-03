@@ -5,7 +5,7 @@ import { Abstraction, FileInfo, IdentifyAbstractionsPrepResult, SharedStore } fr
 import { callLlm } from "../callLlm";
 
 export default class IdentifyAbstractionsNode extends Node<SharedStore> {
-    // 构建 LLM 上下文和参数
+    // Build LLM context and parameters
     async prep(shared: SharedStore): Promise<IdentifyAbstractionsPrepResult> {
         const filesData: FileInfo[] = shared.files || [];
         const projectName: string = shared.projectName || "Unknown Project";
@@ -14,7 +14,7 @@ export default class IdentifyAbstractionsNode extends Node<SharedStore> {
         const maxAbstractionNum: number = shared.maxAbstractionNum || 10;
 
         if (filesData.length === 0) {
-            throw new Error("无法识别抽象，因为没有文件数据。");
+            throw new Error("Cannot identify abstractions because there is no file data.");
         }
 
         const { context, fileInfo } = this.createLlmContext(filesData);
@@ -32,19 +32,19 @@ export default class IdentifyAbstractionsNode extends Node<SharedStore> {
         };
     }
 
-    // 调用 LLM 识别抽象并验证结果
+    // Call LLM to identify abstractions and validate results
     async exec(preRes: IdentifyAbstractionsPrepResult): Promise<Abstraction[]> {
         const { context, fileListingForPrompt, fileCount, projectName, language, useCache, maxAbstractionNum } = preRes;
-        console.log("正在使用 LLM 识别抽象...");
+        console.log("Using LLM to identify abstractions...");
         const prompt = this.buildPrompt(projectName, context, language, maxAbstractionNum, fileListingForPrompt);
         const response = await callLlm(prompt, { useCache, llmApiKey: preRes.apiKey });
         const validatedAbstractions = this.parseAndValidateResponse(response, fileCount);
 
-        console.log(`已识别 ${validatedAbstractions.length} 个抽象。`);
+        console.log(`Identified ${validatedAbstractions.length} abstractions.`);
         return validatedAbstractions;
     }
 
-    // 结果存入共享存储
+    // Store results in shared storage
     async post(shared: SharedStore, _: unknown, execRes: Abstraction[]): Promise<string | undefined> {
         shared.abstractions = execRes;
         return undefined;
@@ -123,18 +123,18 @@ Format the output as a YAML list of dictionaries:
         try {
             yamlStr = response.trim().split("```yaml")[1].split("```")[0].trim();
         } catch (error) {
-            throw new Error(`无法从 LLM 响应中提取 YAML 内容: ${response}`);
+            throw new Error(`Unable to extract YAML content from LLM response: ${response}`);
         }
 
         let rawAbstractions: any;
         try {
             rawAbstractions = YAML.parse(yamlStr);
         } catch (error: any) {
-            throw new Error(`YAML 解析失败: ${error.message}\nYAML content:\n${yamlStr}`);
+            throw new Error(`YAML parsing failed: ${error.message}\nYAML content:\n${yamlStr}`);
         }
 
         if (!Array.isArray(rawAbstractions)) {
-            throw new Error(`LLM 输出不是一个列表 (array)。实际类型: ${typeof rawAbstractions}`);
+            throw new Error(`LLM output is not a list (array). Actual type: ${typeof rawAbstractions}`);
         }
 
         return this.validateAbstractions(rawAbstractions, fileCount);
@@ -145,7 +145,7 @@ Format the output as a YAML list of dictionaries:
 
         for (const item of rawAbstractions) {
             if (typeof item !== "object" || item === null) {
-                console.warn(`跳过无效的抽象项目 (非对象): ${JSON.stringify(item)}`);
+                console.warn(`Skipping invalid abstraction item (not an object): ${JSON.stringify(item)}`);
                 continue;
             }
 
@@ -158,7 +158,7 @@ Format the output as a YAML list of dictionaries:
                 !Array.isArray(item.file_indices)
             ) {
                 throw new Error(
-                    `抽象项目缺少必要的键 (name, description, file_indices) 或类型错误: ${JSON.stringify(item)}`,
+                    `Abstraction item missing required keys (name, description, file_indices) or type error: ${JSON.stringify(item)}`,
                 );
             }
 
@@ -172,14 +172,14 @@ Format the output as a YAML list of dictionaries:
         }
 
         if (validatedAbstractions.length === 0 && rawAbstractions.length > 0) {
-            throw new Error("所有从 LLM 返回的抽象项目都无效。");
+            throw new Error("All abstraction items returned from LLM are invalid.");
         }
 
         return validatedAbstractions;
     }
 
     private validateFileIndices(rawIndices: any[], fileCount: number, abstractionName: string): number[] {
-        const validatedIndices: Set<number> = new Set(); // 使用 Set 去重
+        const validatedIndices: Set<number> = new Set(); // Use Set to remove duplicates
 
         for (const idxEntry of rawIndices) {
             let idx: number | null = null;
@@ -187,29 +187,29 @@ Format the output as a YAML list of dictionaries:
                 if (typeof idxEntry === "number") {
                     idx = idxEntry;
                 } else if (typeof idxEntry === "string") {
-                    // 尝试匹配 "数字 # 注释" 或纯数字
+                    // Try to match "number # comment" or just number
                     const match = idxEntry.match(/^\s*(\d+)/);
                     if (match) {
                         idx = parseInt(match[1], 10);
                     } else {
-                        throw new Error(`无法从字符串 '${idxEntry}' 中解析索引`);
+                        throw new Error(`Cannot parse index from string '${idxEntry}'`);
                     }
                 } else {
-                    throw new Error(`无效的索引条目类型: ${typeof idxEntry}`);
+                    throw new Error(`Invalid index entry type: ${typeof idxEntry}`);
                 }
 
                 if (idx === null || isNaN(idx) || idx < 0 || idx >= fileCount) {
-                    throw new Error(`无效的文件索引 ${idx}。有效范围是 0 到 ${fileCount - 1}。`);
+                    throw new Error(`Invalid file index ${idx}. Valid range is 0 to ${fileCount - 1}.`);
                 }
                 validatedIndices.add(idx);
             } catch (error: any) {
-                // 包装错误信息，提供更多上下文
+                // Wrap error message, provide more context
                 throw new Error(
-                    `解析抽象 "${abstractionName}" 的文件索引失败: 条目 '${idxEntry}', 错误: ${error.message}`,
+                    `Failed to parse file index for abstraction "${abstractionName}": entry '${idxEntry}', error: ${error.message}`,
                 );
             }
         }
-        // 排序后转为数组
+        // Sort and convert to array
         return Array.from(validatedIndices).sort((a, b) => a - b);
     }
 }

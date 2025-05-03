@@ -10,15 +10,15 @@ export function registerOpenCommand(context: vscode.ExtensionContext) {
             const fileName = `agentic-wiki.md`;
             const filePath = path.join(wikiPath, fileName);
 
-            // 检查文件是否存在
+            // Check if file exists
             if (!fs.existsSync(filePath)) {
                 const result = await vscode.window.showErrorMessage(
-                    "Wiki 页面不存在！是否要创建一个新的 Wiki 页面？",
-                    "是",
-                    "否",
+                    "Wiki page does not exist! Do you want to create a new Wiki page?",
+                    "Yes",
+                    "No",
                 );
 
-                if (result === "是") {
+                if (result === "Yes") {
                     vscode.commands.executeCommand("deep-wiki.generate");
                 }
                 return;
@@ -28,11 +28,11 @@ export function registerOpenCommand(context: vscode.ExtensionContext) {
             const document = await vscode.workspace.openTextDocument(filePath);
             await vscode.window.showTextDocument(document);
             await vscode.commands.executeCommand("markdown-preview-enhanced.openPreview");
-            // 使用状态栏消息替代，3秒后自动消失
+            // Use status bar message instead, disappears after 3 seconds
             vscode.window.setStatusBarMessage("Wiki page opened in Markdown Preview Enhanced", 3000);
         } catch (error) {
             vscode.window.showErrorMessage(
-                `打开 Wiki 页面失败: ${error instanceof Error ? error.message : String(error)}`,
+                `Failed to open Wiki page: ${error instanceof Error ? error.message : String(error)}`,
             );
         }
     });

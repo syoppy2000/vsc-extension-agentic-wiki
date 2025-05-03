@@ -17,7 +17,7 @@ export async function callLlm(prompt: string, { useCache = true, llmApiKey }: Op
 
     let cache: Cache = {};
 
-    // 如果启用缓存，检查缓存
+    // If cache is enabled, check cache
     if (useCache) {
         if (fs.existsSync(cacheFile)) {
             try {
@@ -25,11 +25,11 @@ export async function callLlm(prompt: string, { useCache = true, llmApiKey }: Op
                 cache = JSON.parse(data);
             } catch (error) {
                 console.log("WARNING", `Failed to load cache, starting with empty cache. Error: ${error}`);
-                cache = {}; // 出错时重置缓存
+                cache = {}; // Reset cache on error
             }
         }
 
-        // 如果缓存命中，直接返回
+        // If cache hit, return directly
         if (prompt in cache) {
             console.log("INFO", `RESPONSE (from cache): ${cache[prompt]}`);
             return cache[prompt];
@@ -52,18 +52,18 @@ export async function callLlm(prompt: string, { useCache = true, llmApiKey }: Op
     } catch (error) {
         const errorMsg = `LLM API call failed: ${error}`;
         console.error("ERROR", errorMsg);
-        throw new Error(errorMsg); // 抛出错误以便调用者处理
+        throw new Error(errorMsg); // Throw error for caller to handle
     }
 
     console.log(`RESPONSE: ${responseText}`);
 
-    // 如果启用缓存，更新缓存
+    // If cache is enabled, update cache
     if (useCache) {
-        // 再次加载缓存以避免覆盖（虽然在单线程 Node.js 中并发风险较小，但保持逻辑一致）
+        // Reload cache to avoid overwriting (although concurrent risk is small in single-threaded Node.js, maintain consistent logic)
         if (fs.existsSync(cacheFile)) {
             try {
                 const data = fs.readFileSync(cacheFile, "utf-8");
-                // 检查文件是否为空
+                // Check if file is empty
                 if (data.trim()) {
                     cache = JSON.parse(data);
                 } else {
@@ -71,16 +71,16 @@ export async function callLlm(prompt: string, { useCache = true, llmApiKey }: Op
                 }
             } catch (error) {
                 console.log("WARNING", `Failed to reload cache before saving. Error: ${error}`);
-                // 如果重新加载失败，我们仍然尝试写入，但可能会覆盖其他进程的写入（如果存在）
+                // If reload fails, we still try to write, but may overwrite other process writes (if any)
             }
         } else {
             cache = {};
         }
 
-        // 添加到缓存并保存
+        // Add to cache and save
         cache[prompt] = responseText;
         try {
-            fs.writeFileSync(cacheFile, JSON.stringify(cache, null, 2)); // 使用 pretty print 方便查看
+            fs.writeFileSync(cacheFile, JSON.stringify(cache, null, 2)); // Use pretty print for easier viewing
         } catch (error) {
             console.log("ERROR", `Failed to save cache: ${error}`);
         }

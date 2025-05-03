@@ -1,20 +1,20 @@
 import * as vscode from "vscode";
 import * as path from "path";
 
-// 获取 wiki 页面路径
+// Get wiki page path
 export function getWikiPath(): string {
     if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0) {
-        throw new Error("未打开工作区，无法确定 Wiki 路径");
+        throw new Error("No workspace open, cannot determine Wiki path");
     }
     return path.join(vscode.workspace.workspaceFolders[0].uri.fsPath, "wiki");
 }
 
-// 确保目录存在
+// Ensure directory exists
 export async function ensureDirectoryExists(dirPath: string): Promise<void> {
     try {
         await vscode.workspace.fs.stat(vscode.Uri.file(dirPath));
     } catch {
-        // 目录不存在，创建它
+        // Directory doesn't exist, create it
         await vscode.workspace.fs.createDirectory(vscode.Uri.file(dirPath));
     }
 }

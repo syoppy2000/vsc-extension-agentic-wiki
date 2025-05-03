@@ -21,73 +21,73 @@ export default class CombineTutorialNode extends Node<SharedStore> {
         const outputBaseDir = shared.outputDir;
         const outputPath = path.join(outputBaseDir, projectName || "tutorial");
 
-        // 获取可能已翻译的数据
-        const relationshipsData = shared.relationships; // {"summary": str, "details": [{"from": int, "to": int, "label": str}]} -> summary/label 可能已翻译
-        const chapterOrder = shared.chapterOrder; // 索引
-        const abstractions = shared.abstractions; // 字典列表 -> name/description 可能已翻译
-        const chaptersContent = shared.chapters; // 字符串列表 -> 内容可能已翻译
+        // Get potentially translated data
+        const relationshipsData = shared.relationships; // {"summary": str, "details": [{"from": int, "to": int, "label": str}]} -> summary/label may be translated
+        const chapterOrder = shared.chapterOrder; // indices
+        const abstractions = shared.abstractions; // list of dictionaries -> name/description may be translated
+        const chaptersContent = shared.chapters; // list of strings -> content may be translated
 
-        // --- 生成 Mermaid 图表 ---
+        // --- Generate Mermaid diagram ---
         const mermaidLines: string[] = ["flowchart TD"];
-        // 为每个抽象概念添加节点，使用可能已翻译的名称
+        // Add nodes for each abstraction concept, using potentially translated names
         for (let i = 0; i < abstractions.length; i++) {
             const nodeId = `A${i}`;
-            // 使用可能已翻译的名称，为 Mermaid ID 和标签进行清理
+            // Use potentially translated names, clean for Mermaid ID and labels
             const sanitizedName = abstractions[i].name.replace(/"/g, "");
-            const nodeLabel = sanitizedName; // 仅使用清理后的名称
-            mermaidLines.push(`    ${nodeId}["${nodeLabel}"]`); // 节点标签使用可能已翻译的名称
+            const nodeLabel = sanitizedName; // Only use cleaned name
+            mermaidLines.push(`    ${nodeId}["${nodeLabel}"]`); // Node labels use potentially translated names
         }
 
-        // 为关系添加边，使用可能已翻译的标签
+        // Add edges for relationships, using potentially translated labels
         for (const rel of relationshipsData.details) {
             const fromNodeId = `A${rel.from}`;
             const toNodeId = `A${rel.to}`;
-            // 使用可能已翻译的标签，进行清理
-            let edgeLabel = rel.label.replace(/"/g, "").replace(/\n/g, " "); // 基本清理
+            // Use potentially translated labels, clean them
+            let edgeLabel = rel.label.replace(/"/g, "").replace(/\n/g, " "); // Basic cleaning
             const maxLabelLen = 30;
             if (edgeLabel.length > maxLabelLen) {
                 edgeLabel = edgeLabel.substring(0, maxLabelLen - 3) + "...";
             }
-            mermaidLines.push(`    ${fromNodeId} -- "${edgeLabel}" --> ${toNodeId}`); // 边标签使用可能已翻译的标签
+            mermaidLines.push(`    ${fromNodeId} -- "${edgeLabel}" --> ${toNodeId}`); // Edge labels use potentially translated labels
         }
 
         const mermaidDiagram = mermaidLines.join("\n");
-        // --- Mermaid 结束 ---
+        // --- End Mermaid ---
 
-        // --- 准备 index.md 内容 ---
+        // --- Prepare index.md content ---
         let indexContent = `# Tutorial: ${projectName}\n\n`;
-        indexContent += `${relationshipsData.summary}\n\n`; // 直接使用可能已翻译的摘要
-        // 保持固定字符串为英文
+        indexContent += `${relationshipsData.summary}\n\n`; // Directly use potentially translated summary
+        // Keep fixed strings in English
 
-        // 添加关系的 Mermaid 图表（图表本身使用可能已翻译的名称/标签）
+        // Add Mermaid diagram of relationships (diagram itself uses potentially translated names/labels)
         indexContent += "```mermaid\n";
         indexContent += mermaidDiagram + "\n";
         indexContent += "```\n\n";
 
-        // 保持固定字符串为英文
+        // Keep fixed strings in English
         indexContent += `## Chapters\n\n`;
 
         const chapterFiles: ChapterFile[] = [];
-        // 根据确定的顺序生成章节链接，使用可能已翻译的名称
+        // Generate chapter links according to determined order, using potentially translated names
         for (let i = 0; i < chapterOrder.length; i++) {
             const abstractionIndex = chapterOrder[i];
-            // 确保索引有效且我们有对应的内容
+            // Ensure index is valid and we have corresponding content
             if (0 <= abstractionIndex && abstractionIndex < abstractions.length && i < chaptersContent.length) {
-                const abstractionName = abstractions[abstractionIndex].name; // 可能已翻译的名称
-                // 为文件名清理可能已翻译的名称
+                const abstractionName = abstractions[abstractionIndex].name; // Potentially translated name
+                // Clean potentially translated name for filename
                 const safeName = abstractionName.replace(/[^a-zA-Z0-9]/g, "_").toLowerCase();
                 const filename = `${(i + 1).toString().padStart(2, "0")}_${safeName}.md`;
-                indexContent += `${i + 1}. [${abstractionName}](${filename})\n`; // 在链接文本中使用可能已翻译的名称
+                indexContent += `${i + 1}. [${abstractionName}](${filename})\n`; // Use potentially translated name in link text
 
-                // 为章节内容添加归属（使用英文固定字符串）
-                let chapterContent = chaptersContent[i]; // 可能已翻译的内容
+                // Add attribution to chapter content (using English fixed string)
+                let chapterContent = chaptersContent[i]; // Potentially translated content
                 if (!chapterContent.endsWith("\n\n")) {
                     chapterContent += "\n\n";
                 }
-                // 保持固定字符串为英文
+                // Keep fixed strings in English
                 chapterContent += `---\n\nGenerated by [AI Codebase Knowledge Builder](https://github.com/The-Pocket/Tutorial-Codebase-Knowledge)`;
 
-                // 存储文件名和对应内容
+                // Store filename and corresponding content
                 chapterFiles.push({ filename, content: chapterContent });
             } else {
                 console.log(
@@ -96,18 +96,18 @@ export default class CombineTutorialNode extends Node<SharedStore> {
             }
         }
 
-        // 为索引内容添加归属（使用英文固定字符串）
+        // Add attribution to index content (using English fixed string)
         indexContent += `\n\n---\n\nGenerated by [AI Codebase Knowledge Builder](https://github.com/The-Pocket/Tutorial-Codebase-Knowledge)`;
 
         return {
             outputPath,
             indexContent,
-            chapterFiles, // 列表 {"filename": str, "content": str}
+            chapterFiles, // List of {"filename": str, "content": str}
         };
     }
 
     /**
-     * 执行教程生成
+     * Execute tutorial generation
      */
     async exec(prepRes: CombineTutorialNodePrepResult): Promise<string> {
         const outputPath = prepRes.outputPath;
@@ -115,33 +115,33 @@ export default class CombineTutorialNode extends Node<SharedStore> {
         const chapterFiles = prepRes.chapterFiles;
 
         console.log(`Combining tutorial into directory: ${outputPath}`);
-        // 依赖 Node 的内置重试/回退
+        // Rely on Node's built-in retry/fallback
         fs.mkdirSync(outputPath, { recursive: true });
 
-        // 写入 index.md
+        // Write index.md
         const indexFilepath = path.join(outputPath, "index.md");
         fs.writeFileSync(indexFilepath, indexContent, { encoding: "utf-8" });
         console.log(`  - Wrote ${indexFilepath}`);
 
-        // 写入章节文件
+        // Write chapter files
         for (const chapterInfo of chapterFiles) {
             const chapterFilepath = path.join(outputPath, chapterInfo.filename);
             fs.writeFileSync(chapterFilepath, chapterInfo.content, { encoding: "utf-8" });
             console.log(`  - Wrote ${chapterFilepath}`);
         }
 
-        return outputPath; // 返回最终路径
+        return outputPath; // Return final path
     }
 
     /**
-     * 处理后续操作
+     * Handle follow-up operations
      */
     async post(
         shared: SharedStore,
         prepRes: CombineTutorialNodePrepResult,
         execRes: string,
     ): Promise<string | undefined> {
-        shared.finalOutputDir = execRes; // 存储输出路径
+        shared.finalOutputDir = execRes; // Store output path
         console.log(`\nTutorial generation complete! Files are in: ${execRes}`);
         return undefined;
     }
