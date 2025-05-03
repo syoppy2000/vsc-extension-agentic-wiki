@@ -2,7 +2,7 @@
     "name": "agentic-wiki",
     "displayName": "Agentic Wiki",
     "description": "The Agentic Wiki For Your Git Codebase",
-    "version": "0.0.2",
+    "version": "0.0.3",
     "publisher": "fine405",
     "author": {
         "name": "fine"

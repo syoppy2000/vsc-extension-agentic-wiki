@@ -2,7 +2,7 @@
 
 All notable changes to the "Agentic Wiki" extension will be documented in this file.
 
-## [0.0.3] - 2023-11-30
+## [0.0.3] - 2025-05-03
 
 ### Security
 
@@ -16,7 +16,7 @@ All notable changes to the "Agentic Wiki" extension will be documented in this f
 - Updated language dropdown in configuration UI to make English the default first option
 - Improved error messages for missing or invalid API keys
 
-## [0.0.2] - 2023-11-20
+## [0.0.2] - 2025-05-03
 
 ### Added
 
@@ -24,7 +24,7 @@ All notable changes to the "Agentic Wiki" extension will be documented in this f
 - Improved caching mechanism for LLM responses
 - Enhanced error handling for API calls
 
-## [0.0.1] - 2023-11-15
+## [0.0.1] - 2025-05-03
 
 ### Added
 
