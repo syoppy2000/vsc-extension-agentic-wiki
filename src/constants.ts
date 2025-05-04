@@ -75,7 +75,7 @@ export const DEFAULT_CONFIG: GlobalConfig = {
     includePatterns: DEFAULT_INCLUDE_PATTERNS,
     excludePatterns: DEFAULT_EXCLUDE_PATTERNS,
     maxFileSize: 100,
-    language: "English",
+    language: "en",
     useCache: true,
     maxAbstractionNum: 10,
 };

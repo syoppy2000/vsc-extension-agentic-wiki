@@ -2,50 +2,89 @@
  * Utility functions for handling language-related operations
  */
 
+// Language code to display name mapping
+const LANGUAGE_MAP: Record<string, string> = {
+    en: "English",
+    zh: "Chinese",
+    ja: "Japanese",
+    es: "Spanish",
+    fr: "French",
+    de: "German",
+};
+
+// Native language names for better LLM understanding
+const NATIVE_LANGUAGE_NAMES: Record<string, string> = {
+    en: "English",
+    zh: "中文",
+    ja: "日本語",
+    es: "Español",
+    fr: "Français",
+    de: "Deutsch",
+};
+
+/**
+ * Get language display name from language code
+ * @param langCode The language code (e.g., 'en', 'zh')
+ * @returns The display name of the language
+ */
+function getLanguageDisplayName(langCode: string): string {
+    return LANGUAGE_MAP[langCode] || "English";
+}
+
+/**
+ * Get native language name from language code
+ * @param langCode The language code (e.g., 'en', 'zh')
+ * @returns The native name of the language
+ */
+function getNativeLanguageName(langCode: string): string {
+    return NATIVE_LANGUAGE_NAMES[langCode] || "English";
+}
+
 /**
  * Get language instruction for LLM prompts
- * @param language The target language
+ * @param langCode The target language code
  * @param fieldNames Names of fields to be translated
  * @returns Language instruction string
  */
-export function getLanguageInstruction(language: string, fieldNames: string[]): string {
-    if (language.toLowerCase() === "english") {
+export function getLanguageInstruction(langCode: string, fieldNames: string[]): string {
+    if (langCode === "en") {
         return "";
     }
-    
-    const capitalizedLanguage = capitalizeFirstLetter(language);
+
+    const displayName = getLanguageDisplayName(langCode);
+    const nativeName = getNativeLanguageName(langCode);
     const fieldsStr = fieldNames.map(field => `\`${field}\``).join(" and ");
-    
-    return `IMPORTANT: Generate the ${fieldsStr} for each abstraction in **${capitalizedLanguage}** language. Do NOT use English for these fields.\n\n`;
+
+    return `IMPORTANT: Generate the ${fieldsStr} for each abstraction in **${displayName} (${nativeName})** language. Do NOT use English for these fields.\n\n`;
 }
 
 /**
  * Get language hint for field descriptions
- * @param language The target language
+ * @param langCode The target language code
  * @param prefix Optional prefix text
  * @returns Language hint string
  */
-export function getLanguageHint(language: string, prefix: string = ""): string {
-    if (language.toLowerCase() === "english") {
+export function getLanguageHint(langCode: string, prefix: string = ""): string {
+    if (langCode === "en") {
         return "";
     }
-    
-    const capitalizedLanguage = capitalizeFirstLetter(language);
-    return `${prefix} (in ${capitalizedLanguage})`;
+
+    const displayName = getLanguageDisplayName(langCode);
+    return `${prefix} (in ${displayName})`;
 }
 
 /**
  * Get language note for lists
- * @param language The target language
+ * @param langCode The target language code
  * @returns Language note string
  */
-export function getLanguageListNote(language: string): string {
-    if (language.toLowerCase() === "english") {
+export function getLanguageListNote(langCode: string): string {
+    if (langCode === "en") {
         return "";
     }
-    
-    const capitalizedLanguage = capitalizeFirstLetter(language);
-    return ` (Names might be in ${capitalizedLanguage})`;
+
+    const displayName = getLanguageDisplayName(langCode);
+    return ` (Names might be in ${displayName})`;
 }
 
 /**
@@ -59,11 +98,11 @@ export function capitalizeFirstLetter(str: string): string {
 
 /**
  * Get comprehensive language context for chapter writing
- * @param language The target language
+ * @param langCode The target language code
  * @returns Object with various language context strings
  */
-export function getChapterLanguageContext(language: string) {
-    if (language.toLowerCase() === "english") {
+export function getChapterLanguageContext(langCode: string) {
+    if (langCode === "en") {
         return {
             languageInstruction: "",
             conceptDetailsNote: "",
@@ -73,21 +112,22 @@ export function getChapterLanguageContext(language: string) {
             mermaidLangNote: "",
             codeCommentNote: "",
             linkLangNote: "",
-            toneNote: ""
+            toneNote: "",
         };
     }
-    
-    const langCap = capitalizeFirstLetter(language);
-    
+
+    const displayName = getLanguageDisplayName(langCode);
+    const nativeName = getNativeLanguageName(langCode);
+
     return {
-        languageInstruction: `IMPORTANT: Write the entire tutorial chapter in **${langCap}**. Some input context (like concept names, descriptions, chapter list, previous summaries) may already be in ${langCap}, but you must translate all other generated content (including explanations, examples, technical terms, and possible code comments) into ${langCap}. Do not use English except for code syntax, necessary proper nouns, or specifically designated content. The entire output must be in ${langCap}.\n\n`,
-        conceptDetailsNote: ` (Note: ${langCap} version provided)`,
-        structureNote: ` (Note: chapter names may be in ${langCap})`,
-        prevSummaryNote: ` (Note: this summary may be in ${langCap})`,
-        instructionLangNote: ` (in ${langCap})`,
-        mermaidLangNote: ` (if appropriate, use ${langCap} for labels/text)`,
-        codeCommentNote: ` (translate to ${langCap} if possible, otherwise keep minimal English for clarity)`,
-        linkLangNote: ` (use ${langCap} chapter titles from the structure above)`,
-        toneNote: ` (suitable for ${langCap} readers)`
+        languageInstruction: `IMPORTANT: Write the entire tutorial chapter in **${displayName} (${nativeName})**. Some input context (like concept names, descriptions, chapter list, previous summaries) may already be in ${displayName}, but you must translate all other generated content (including explanations, examples, technical terms, and possible code comments) into ${displayName}. Do not use English except for code syntax, necessary proper nouns, or specifically designated content. The entire output must be in ${displayName}.\n\n`,
+        conceptDetailsNote: ` (Note: ${displayName} version provided)`,
+        structureNote: ` (Note: chapter names may be in ${displayName})`,
+        prevSummaryNote: ` (Note: this summary may be in ${displayName})`,
+        instructionLangNote: ` (in ${displayName})`,
+        mermaidLangNote: ` (if appropriate, use ${displayName} for labels/text)`,
+        codeCommentNote: ` (translate to ${displayName} if possible, otherwise keep minimal English for clarity)`,
+        linkLangNote: ` (use ${displayName} chapter titles from the structure above)`,
+        toneNote: ` (suitable for ${displayName} readers)`,
     };
 }
