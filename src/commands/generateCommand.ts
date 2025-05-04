@@ -42,8 +42,8 @@ export function registerGenerateCommand(context: vscode.ExtensionContext) {
                     const flow = createFlow();
                     let shared = context.globalState.get<SharedStore>(CONFIG_KEY) || ({} as SharedStore);
 
-                    // Add API key to flow parameters but not to shared state
-                    flow.setParams({ ...shared, llmApiKey: apiKey });
+                    // Add API key and extension context to flow parameters but not to shared state
+                    flow.setParams({ ...shared, llmApiKey: apiKey, context });
                     await flow.run(shared);
 
                     progress.report({ increment: 30, message: "Writing files..." });

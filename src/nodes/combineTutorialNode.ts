@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import { Node } from "pocketflow";
 
-import { SharedStore } from "../types";
+import { SharedStore, NodeParams } from "../types";
 
 interface ChapterFile {
     filename: string;
@@ -15,7 +15,7 @@ interface CombineTutorialNodePrepResult {
     chapterFiles: ChapterFile[];
 }
 
-export default class CombineTutorialNode extends Node<SharedStore> {
+export default class CombineTutorialNode extends Node<SharedStore, NodeParams> {
     async prep(shared: SharedStore): Promise<CombineTutorialNodePrepResult> {
         const projectName = shared.projectName;
         const outputBaseDir = shared.outputDir;

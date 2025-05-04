@@ -1,9 +1,9 @@
 import path from "path";
 import { Node } from "pocketflow";
 import { crawlLocalFiles } from "../crawLocalFiles";
-import { FileInfo, SharedStore } from "../types";
+import { FileInfo, SharedStore, NodeParams } from "../types";
 
-export default class FetchRepoNode extends Node<SharedStore> {
+export default class FetchRepoNode extends Node<SharedStore, NodeParams> {
     async prep(shared: SharedStore): Promise<SharedStore> {
         // Read repo from shared
         const projectName = path.basename(path.resolve(shared.localDir));

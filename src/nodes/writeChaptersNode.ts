@@ -1,6 +1,6 @@
 import { BatchNode } from "pocketflow";
 import { callLlm } from "../callLlm";
-import { ChapterInfo, ChapterItem, SharedStore } from "../types";
+import { ChapterInfo, ChapterItem, SharedStore, NodeParams } from "../types";
 import { getContentForIndices } from "../utils";
 import { getChapterLanguageContext, capitalizeFirstLetter } from "../utils/languageUtils";
 import { formatContentMap, createSafeFilename } from "../utils/fileUtils";
@@ -10,7 +10,7 @@ interface WriteChaptersNodePrepResult {
     shared: SharedStore;
 }
 
-export default class WriteChaptersNode extends BatchNode<SharedStore> {
+export default class WriteChaptersNode extends BatchNode<SharedStore, NodeParams> {
     private chaptersWrittenSoFar: string[] = [];
 
     async prep(shared: SharedStore): Promise<WriteChaptersNodePrepResult> {
@@ -187,6 +187,7 @@ export default class WriteChaptersNode extends BatchNode<SharedStore> {
         const chapterContent = await callLlm(prompt, {
             useCache: this._params.useCache as boolean,
             llmApiKey: this._params.llmApiKey as string,
+            context: this._params.context,
         });
 
         // Basic validation/cleanup

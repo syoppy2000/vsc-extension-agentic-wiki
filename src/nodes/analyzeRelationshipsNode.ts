@@ -1,5 +1,6 @@
 import YAML from "yaml";
 import { Node } from "pocketflow";
+import * as vscode from "vscode";
 import {
     Abstraction,
     FileInfo,
@@ -7,12 +8,13 @@ import {
     AnalyzeRelationshipsPrepResult,
     RelationshipsResult,
     Relationship,
+    NodeParams,
 } from "../types";
 import { callLlm } from "../callLlm";
 import { getLanguageInstruction, getLanguageHint, getLanguageListNote } from "../utils/languageUtils";
 import { formatFileContent, formatAbstractionListing } from "../utils/fileUtils";
 
-export default class AnalyzeRelationshipsNode extends Node<SharedStore> {
+export default class AnalyzeRelationshipsNode extends Node<SharedStore, NodeParams> {
     /**
      * Prepare context and data needed for relationship analysis
      */
@@ -73,8 +75,12 @@ export default class AnalyzeRelationshipsNode extends Node<SharedStore> {
         // Build prompt
         const prompt = this.buildPrompt(projectName, abstractionListing, context, language);
 
-        // Call LLM
-        const response = await callLlm(prompt, { useCache, llmApiKey: prepRes.apiKey });
+        // Call LLM with extension context
+        const response = await callLlm(prompt, {
+            useCache,
+            llmApiKey: prepRes.apiKey,
+            context: this._params.context,
+        });
 
         // Parse and validate response
         const result = this.parseAndValidateResponse(response, numAbstractions);

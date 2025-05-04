@@ -15,14 +15,14 @@ export function log(message: string) {
 // Export the secrets manager instance for use in other parts of the extension
 export let secretsManager: SecretsManager;
 
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
     log('Congratulations, your extension "agentic-wiki" is now active!');
 
     // Initialize the secrets manager
     secretsManager = new SecretsManager(context);
 
     // Migrate existing API key to secure storage if needed
-    migrateApiKeyToSecureStorage(context);
+    await migrateApiKeyToSecureStorage(context);
 
     registerGenerateCommand(context);
     registerOpenCommand(context);

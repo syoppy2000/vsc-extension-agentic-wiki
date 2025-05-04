@@ -1,12 +1,12 @@
 import { Node } from "pocketflow";
 import YAML from "yaml";
 
-import { Abstraction, FileInfo, IdentifyAbstractionsPrepResult, SharedStore } from "../types";
+import { Abstraction, FileInfo, IdentifyAbstractionsPrepResult, SharedStore, NodeParams } from "../types";
 import { callLlm } from "../callLlm";
 import { getLanguageInstruction, getLanguageHint } from "../utils/languageUtils";
 import { formatAbstractionListing } from "../utils/fileUtils";
 
-export default class IdentifyAbstractionsNode extends Node<SharedStore> {
+export default class IdentifyAbstractionsNode extends Node<SharedStore, NodeParams> {
     // Build LLM context and parameters
     async prep(shared: SharedStore): Promise<IdentifyAbstractionsPrepResult> {
         const filesData: FileInfo[] = shared.files || [];
@@ -39,7 +39,14 @@ export default class IdentifyAbstractionsNode extends Node<SharedStore> {
         const { context, fileListingForPrompt, fileCount, projectName, language, useCache, maxAbstractionNum } = preRes;
         console.log("Using LLM to identify abstractions...");
         const prompt = this.buildPrompt(projectName, context, language, maxAbstractionNum, fileListingForPrompt);
-        const response = await callLlm(prompt, { useCache, llmApiKey: preRes.apiKey });
+
+        // Pass the extension context from flow parameters if available
+        const response = await callLlm(prompt, {
+            useCache,
+            llmApiKey: preRes.apiKey,
+            context: this._params.context,
+        });
+
         const validatedAbstractions = this.parseAndValidateResponse(response, fileCount);
 
         console.log(`Identified ${validatedAbstractions.length} abstractions.`);

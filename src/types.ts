@@ -98,3 +98,16 @@ export interface ChapterOrderPreResult {
     useCache: boolean;
     apiKey: string;
 }
+
+/**
+ * Parameters passed to nodes in the flow
+ * Includes SharedStore properties and additional parameters like VS Code extension context
+ */
+export interface NodeParams {
+    [key: string]: unknown;
+    context?: import("vscode").ExtensionContext;
+    llmApiKey?: string;
+    useCache?: boolean;
+    language?: string;
+    maxAbstractionNum?: number;
+}

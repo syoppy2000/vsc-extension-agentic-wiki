@@ -1,11 +1,11 @@
 import { Node } from "pocketflow";
 import YAML from "yaml";
 import { callLlm } from "../callLlm";
-import { ChapterOrderPreResult, SharedStore } from "../types";
+import { ChapterOrderPreResult, SharedStore, NodeParams } from "../types";
 import { getLanguageListNote, capitalizeFirstLetter } from "../utils/languageUtils";
 import { formatAbstractionListing } from "../utils/fileUtils";
 
-export default class OrderChaptersNode extends Node<SharedStore> {
+export default class OrderChaptersNode extends Node<SharedStore, NodeParams> {
     async prep(shared: SharedStore): Promise<ChapterOrderPreResult> {
         const abstractions = shared.abstractions; // Names/descriptions may be translated
         const relationships = shared.relationships; // Summary/labels may be translated
@@ -82,6 +82,7 @@ export default class OrderChaptersNode extends Node<SharedStore> {
         const response = await callLlm(prompt, {
             llmApiKey: prepRes.apiKey,
             useCache,
+            context: this._params.context,
         });
 
         // --- Validation ---
