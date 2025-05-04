@@ -1,6 +1,6 @@
 import path from "path";
 import { Node } from "pocketflow";
-import { crawlLocalFiles } from "../crawLocalFiles";
+import { crawlLocalFiles } from "../services/file";
 import { FileInfo, SharedStore, NodeParams } from "../types";
 
 export default class FetchRepoNode extends Node<SharedStore, NodeParams> {

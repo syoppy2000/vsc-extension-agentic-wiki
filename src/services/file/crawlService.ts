@@ -2,7 +2,8 @@ import fs from "fs";
 import path from "path";
 import { minimatch } from "minimatch";
 import ignore from "ignore";
-import { FileInfo } from "./types";
+import { FileInfo } from "../../types";
+import { LoggerService } from "../logger";
 
 interface CrawlResult {
     files: FileInfo[];
@@ -24,6 +25,8 @@ export function crawlLocalFiles(
     maxFileSize?: number,
     useRelativePaths: boolean = true,
 ): CrawlResult {
+    const logger = LoggerService.getInstance();
+
     if (!fs.existsSync(directory) || !fs.statSync(directory).isDirectory()) {
         throw new Error(`Directory does not exist: ${directory}`);
     }
@@ -38,9 +41,9 @@ export function crawlLocalFiles(
         try {
             const gitignorePatterns = fs.readFileSync(gitignorePath, "utf-8").split("\n");
             gitignoreSpec = ignore().add(gitignorePatterns);
-            console.log(`Loaded .gitignore patterns from ${gitignorePath}`);
+            logger.info(`Loaded .gitignore patterns from ${gitignorePath}`);
         } catch (e) {
-            console.log(`Warning: Unable to read or parse .gitignore file ${gitignorePath}: ${e}`);
+            logger.warn(`Unable to read or parse .gitignore file ${gitignorePath}: ${e}`);
         }
     }
     // --- End loading .gitignore ---
@@ -113,7 +116,7 @@ export function crawlLocalFiles(
                 const content = fs.readFileSync(itemPath, "utf-8");
                 filesList.push({ path: relPath, content });
             } catch (e) {
-                console.log(`Warning: Unable to read file ${itemPath}: ${e}`);
+                logger.warn(`Unable to read file ${itemPath}: ${e}`);
             }
         }
     }
@@ -123,18 +126,3 @@ export function crawlLocalFiles(
 
     return { files: filesList };
 }
-
-// Example usage
-//     console.log("--- Crawling parent directory ('..') ---");
-//     const filesData = crawlLocalFiles("..", undefined, [
-//         "*.pyc",
-//         "__pycache__/*",
-//         ".venv/*",
-//         ".git/*",
-//         "docs/*",
-//         "output/*",
-//     ]);
-//     console.log(`Found ${Object.keys(filesData.files).length} files:`);
-//     for (const path in filesData.files) {
-//         console.log(`  ${path}`);
-//     }

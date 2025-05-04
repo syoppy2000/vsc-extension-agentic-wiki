@@ -1,6 +1,6 @@
 import { Node } from "pocketflow";
 import YAML from "yaml";
-import { callLlm } from "../callLlm";
+import { callLlm } from "../services/llm";
 import { ChapterOrderPreResult, SharedStore, NodeParams } from "../types";
 import { getLanguageListNote, capitalizeFirstLetter } from "../utils/languageUtils";
 import { formatAbstractionListing } from "../utils/fileUtils";

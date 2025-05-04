@@ -2,7 +2,7 @@ import { Node } from "pocketflow";
 import YAML from "yaml";
 
 import { Abstraction, FileInfo, IdentifyAbstractionsPrepResult, SharedStore, NodeParams } from "../types";
-import { callLlm } from "../callLlm";
+import { callLlm } from "../services/llm";
 import { getLanguageInstruction, getLanguageHint } from "../utils/languageUtils";
 import { formatAbstractionListing } from "../utils/fileUtils";
 

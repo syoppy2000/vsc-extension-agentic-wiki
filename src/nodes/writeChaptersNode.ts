@@ -1,5 +1,5 @@
 import { BatchNode } from "pocketflow";
-import { callLlm } from "../callLlm";
+import { callLlm } from "../services/llm";
 import { ChapterInfo, ChapterItem, SharedStore, NodeParams } from "../types";
 import { getContentForIndices } from "../utils";
 import { getChapterLanguageContext, capitalizeFirstLetter } from "../utils/languageUtils";

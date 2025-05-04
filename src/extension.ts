@@ -6,17 +6,19 @@ import { registerEventListeners } from "./listeners";
 import { SecretsManager } from "./utils/secretsManager";
 import { CONFIG_KEY } from "./constants";
 import { GlobalConfig } from "./types";
-
-const outputChannel = vscode.window.createOutputChannel("Agentic Wiki");
-export function log(message: string) {
-    outputChannel.appendLine(message);
-}
+import { LoggerService } from "./services/logger";
+import { ConfigService } from "./services/config";
 
 // Export the secrets manager instance for use in other parts of the extension
 export let secretsManager: SecretsManager;
 
 export async function activate(context: vscode.ExtensionContext) {
-    log('Congratulations, your extension "agentic-wiki" is now active!');
+    // Initialize logger
+    const logger = LoggerService.getInstance();
+    logger.info('Congratulations, your extension "agentic-wiki" is now active!');
+
+    // Initialize config service
+    ConfigService.getInstance(context);
 
     // Initialize the secrets manager
     secretsManager = new SecretsManager(context);
@@ -36,6 +38,8 @@ export async function activate(context: vscode.ExtensionContext) {
  * This is a one-time migration for users upgrading from previous versions
  */
 async function migrateApiKeyToSecureStorage(context: vscode.ExtensionContext) {
+    const logger = LoggerService.getInstance();
+
     try {
         const config = context.globalState.get<GlobalConfig>(CONFIG_KEY);
         if (config && config.llmApiKey) {
@@ -46,10 +50,10 @@ async function migrateApiKeyToSecureStorage(context: vscode.ExtensionContext) {
             const newConfig = { ...config, llmApiKey: "" };
             await context.globalState.update(CONFIG_KEY, newConfig);
 
-            log("Successfully migrated API key to secure storage");
+            logger.info("Successfully migrated API key to secure storage");
         }
     } catch (error) {
-        log(`Error migrating API key to secure storage: ${error instanceof Error ? error.message : String(error)}`);
+        logger.error(`Error migrating API key to secure storage`, error);
     }
 }
 

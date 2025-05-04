@@ -10,7 +10,7 @@ import {
     Relationship,
     NodeParams,
 } from "../types";
-import { callLlm } from "../callLlm";
+import { callLlm } from "../services/llm";
 import { getLanguageInstruction, getLanguageHint, getLanguageListNote } from "../utils/languageUtils";
 import { formatFileContent, formatAbstractionListing } from "../utils/fileUtils";
 
