@@ -46,6 +46,7 @@ export default class OrderChaptersNode extends Node<SharedStore, NodeParams> {
             listLangNote,
             useCache,
             apiKey,
+            model: shared.llmModel,
         };
     }
 
@@ -83,6 +84,7 @@ export default class OrderChaptersNode extends Node<SharedStore, NodeParams> {
             llmApiKey: prepRes.apiKey,
             useCache,
             context: this._params.context,
+            model: prepRes.model,
         });
 
         // --- Validation ---

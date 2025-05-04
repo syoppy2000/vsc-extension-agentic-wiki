@@ -1,8 +1,8 @@
 {
     "name": "agentic-wiki",
     "displayName": "Agentic Wiki",
-    "description": "The Agentic Wiki For Your Git Codebase",
-    "version": "0.0.4",
+    "description": "The Agentic Wiki For Your Codebase",
+    "version": "0.1.0-beta.1",
     "publisher": "fine405",
     "author": {
         "name": "fine"

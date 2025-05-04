@@ -31,6 +31,7 @@ export default class IdentifyAbstractionsNode extends Node<SharedStore, NodePara
             useCache,
             maxAbstractionNum,
             apiKey: shared.llmApiKey,
+            model: shared.llmModel,
         };
     }
 
@@ -45,6 +46,7 @@ export default class IdentifyAbstractionsNode extends Node<SharedStore, NodePara
             useCache,
             llmApiKey: preRes.apiKey,
             context: this._params.context,
+            model: preRes.model,
         });
 
         const validatedAbstractions = this.parseAndValidateResponse(response, fileCount);

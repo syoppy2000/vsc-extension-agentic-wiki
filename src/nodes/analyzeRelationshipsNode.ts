@@ -1,6 +1,5 @@
 import YAML from "yaml";
 import { Node } from "pocketflow";
-import * as vscode from "vscode";
 import {
     Abstraction,
     FileInfo,
@@ -61,6 +60,7 @@ export default class AnalyzeRelationshipsNode extends Node<SharedStore, NodePara
             useCache,
             numAbstractions: abstractions.length,
             apiKey: shared.llmApiKey!,
+            model: shared.llmModel,
         };
     }
 
@@ -80,6 +80,7 @@ export default class AnalyzeRelationshipsNode extends Node<SharedStore, NodePara
             useCache,
             llmApiKey: prepRes.apiKey,
             context: this._params.context,
+            model: prepRes.model,
         });
 
         // Parse and validate response

@@ -188,6 +188,7 @@ export default class WriteChaptersNode extends BatchNode<SharedStore, NodeParams
             useCache: this._params.useCache as boolean,
             llmApiKey: this._params.llmApiKey as string,
             context: this._params.context,
+            model: this._params.llmModel as string,
         });
 
         // Basic validation/cleanup

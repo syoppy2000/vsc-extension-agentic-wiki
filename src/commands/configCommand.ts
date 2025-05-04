@@ -2,8 +2,9 @@ import * as vscode from "vscode";
 import * as path from "path";
 import * as fs from "fs";
 import { GlobalConfig } from "../types";
-import { CONFIG_KEY, DEFAULT_CONFIG, OUTPUT_DIR } from "../constants";
+import { CONFIG_KEY, DEFAULT_CONFIG, OUTPUT_DIR, OPENROUTER_DEFAULT_MODEL } from "../constants";
 import { secretsManager } from "../extension";
+import { fetchAvailableModels, OpenRouterModel } from "../services/llm/llmService";
 
 export function registerConfigCommand(context: vscode.ExtensionContext) {
     const config = vscode.commands.registerCommand("agentic-wiki.config", async () => {
@@ -68,6 +69,9 @@ class ConfigPanel {
                     case "saveConfig":
                         await this.saveConfig(message.config);
                         break;
+                    case "fetchModels":
+                        await this.fetchAndSendModels(message.apiKey);
+                        break;
                 }
             },
             undefined,
@@ -97,9 +101,59 @@ class ConfigPanel {
                     command: "updateApiKey",
                     apiKey,
                 });
+
+                // If API key is available, fetch models
+                if (apiKey) {
+                    await this.fetchAndSendModels(apiKey);
+                }
             }
         } catch (error) {
             console.error("Error loading API key from secure storage:", error);
+        }
+    }
+
+    /**
+     * Fetch available models and send them to the webview
+     */
+    private async fetchAndSendModels(apiKey: string) {
+        if (!apiKey) {
+            // If no API key, send empty models list
+            this.panel.webview.postMessage({
+                command: "updateModels",
+                models: [],
+                selectedModel: this.config.llmModel || OPENROUTER_DEFAULT_MODEL,
+            });
+            return;
+        }
+
+        try {
+            // Show loading status
+            vscode.window.setStatusBarMessage("Fetching available models...", 3000);
+
+            // Fetch models from OpenRouter API
+            const models = await fetchAvailableModels(apiKey);
+
+            // Send models to webview
+            this.panel.webview.postMessage({
+                command: "updateModels",
+                models,
+                selectedModel: this.config.llmModel || OPENROUTER_DEFAULT_MODEL,
+            });
+        } catch (error) {
+            console.error("Error fetching models:", error);
+
+            // Send error to webview
+            this.panel.webview.postMessage({
+                command: "updateModels",
+                models: [],
+                selectedModel: this.config.llmModel || OPENROUTER_DEFAULT_MODEL,
+                error: error instanceof Error ? error.message : String(error),
+            });
+
+            // Show error notification
+            vscode.window.showErrorMessage(
+                `Failed to fetch models: ${error instanceof Error ? error.message : String(error)}`,
+            );
         }
     }
 

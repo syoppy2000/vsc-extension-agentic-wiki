@@ -78,9 +78,20 @@
 
             <h2 class="section-title">LLM Configuration</h2>
             <div class="form-group">
-                <label for="llmApiKey">API Key</label>
+                <label for="llmApiKey">OpenRouter API Key</label>
                 <input type="password" id="llmApiKey" />
-                <div class="description">API key for accessing the LLM API</div>
+                <div class="description">
+                    API key for accessing OpenRouter.
+                    <a href="https://openrouter.ai/keys" target="_blank">Click here to create a free API key</a>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="llmModel">LLM Model</label>
+                <select id="llmModel">
+                    <option value="">Loading models...</option>
+                </select>
+                <div class="description">Select a model to use (free models are listed first)</div>
             </div>
 
             <h2 class="section-title">Project Configuration</h2>
@@ -170,13 +181,59 @@
                         case 'updateApiKey':
                             document.getElementById("llmApiKey").value = message.apiKey || "";
                             break;
+                        case 'updateModels':
+                            updateModelDropdown(message.models, message.selectedModel);
+                            break;
                     }
                 });
+
+                // Update model dropdown with fetched models
+                function updateModelDropdown(models, selectedModel) {
+                    const modelSelect = document.getElementById("llmModel");
+                    modelSelect.innerHTML = ""; // Clear existing options
+
+                    if (!models || models.length === 0) {
+                        const option = document.createElement("option");
+                        option.value = "";
+                        option.textContent = "No models available or API key not set";
+                        modelSelect.appendChild(option);
+                        return;
+                    }
+
+                    // Add models to dropdown
+                    models.forEach(model => {
+                        const option = document.createElement("option");
+                        option.value = model.id;
+
+                        // Format price for display
+                        const promptPrice = parseFloat(model.pricing.prompt);
+                        const completionPrice = parseFloat(model.pricing.completion);
+                        const totalPrice = promptPrice + completionPrice;
+                        const priceText = totalPrice === 0 ? "Free" : `$${totalPrice.toFixed(7)}/token`;
+
+                        option.textContent = `${model.name} (${priceText})`;
+                        modelSelect.appendChild(option);
+                    });
+
+                    // Set selected model if provided
+                    if (selectedModel) {
+                        modelSelect.value = selectedModel;
+                    }
+                }
 
                 // Fill the form
                 document.addEventListener("DOMContentLoaded", () => {
                     // Set values for other fields
                     document.getElementById("llmApiKey").value = config.llmApiKey || "";
+
+                    // Request models if API key is set
+                    if (config.llmApiKey) {
+                        vscode.postMessage({
+                            command: "fetchModels",
+                            apiKey: config.llmApiKey
+                        });
+                    }
+
                     document.getElementById("localDir").value = config.localDir || workspaceFolder;
                     document.getElementById("projectName").value = config.projectName || "";
                     document.getElementById("outputDir").value = config.outputDir || "";
@@ -206,6 +263,7 @@
                 function saveConfig() {
                     const newConfig = {
                         llmApiKey: document.getElementById("llmApiKey").value,
+                        llmModel: document.getElementById("llmModel").value,
                         localDir: document.getElementById("localDir").value || workspaceFolder,
                         projectName: document.getElementById("projectName").value || null,
                         outputDir: document.getElementById("outputDir").value,

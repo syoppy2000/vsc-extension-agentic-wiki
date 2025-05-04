@@ -3,6 +3,11 @@ import { GlobalConfig } from "./types";
 export const CONFIG_KEY = "agentic-wiki.config";
 export const OUTPUT_DIR = "agentic-wiki";
 
+// OpenRouter API related constants
+export const OPENROUTER_API_URL = "https://openrouter.ai/api/v1";
+export const OPENROUTER_DEFAULT_MODEL = "deepseek/deepseek-r1:free";
+export const OPENROUTER_SIGNUP_URL = "https://openrouter.ai/keys";
+
 // Default inclusion patterns
 const DEFAULT_INCLUDE_PATTERNS = [
     "*.py",
@@ -63,6 +68,7 @@ const DEFAULT_EXCLUDE_PATTERNS = [
 
 export const DEFAULT_CONFIG: GlobalConfig = {
     llmApiKey: "",
+    llmModel: OPENROUTER_DEFAULT_MODEL,
     localDir: "",
     projectName: null,
     outputDir: OUTPUT_DIR,

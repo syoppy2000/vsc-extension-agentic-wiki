@@ -14,8 +14,19 @@ export interface WikiConfig {
     maxAbstractionNum: number;
 }
 
+export interface LlmModel {
+    id: string;
+    name: string;
+    pricing: {
+        prompt: string;
+        completion: string;
+    };
+    context_length: number;
+}
+
 export interface GlobalConfig extends WikiConfig {
     llmApiKey: string;
+    llmModel?: string;
 }
 
 export interface FileInfo {
@@ -66,6 +77,7 @@ export interface IdentifyAbstractionsPrepResult {
     useCache: boolean;
     maxAbstractionNum: number;
     apiKey: string;
+    model?: string;
 }
 
 export interface Relationship {
@@ -87,6 +99,7 @@ export interface AnalyzeRelationshipsPrepResult {
     useCache: boolean;
     numAbstractions: number;
     apiKey: string;
+    model?: string;
 }
 
 export interface ChapterOrderPreResult {
@@ -97,6 +110,7 @@ export interface ChapterOrderPreResult {
     listLangNote: string;
     useCache: boolean;
     apiKey: string;
+    model?: string;
 }
 
 /**
@@ -107,6 +121,7 @@ export interface NodeParams {
     [key: string]: unknown;
     context?: import("vscode").ExtensionContext;
     llmApiKey?: string;
+    llmModel?: string;
     useCache?: boolean;
     language?: string;
     maxAbstractionNum?: number;
