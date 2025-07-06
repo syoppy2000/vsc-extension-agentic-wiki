@@ -1,10 +1,14 @@
-import { OpenAI } from "openai";
 import * as vscode from "vscode";
 import { secretsManager } from "../../extension";
 import { getCacheValue, initializeCachePath, setCacheValue } from "../cache";
-import { OPENROUTER_API_URL, OPENROUTER_DEFAULT_MODEL } from "../../constants";
+import { LmProvider } from "./lmProvider";
+import { VsCodeLmProvider } from "./vsCodeLm";
+import { OpenRouterModelProvider } from "./openRouter";
 
+
+export const DEFAULT_LLM_PROVIDER = "OpenRouter"; // Default provider name
 export interface LlmOptions {
+    providerName: string;
     llmApiKey?: string;
     useCache?: boolean;
     context?: vscode.ExtensionContext;
@@ -24,47 +28,27 @@ export interface OpenRouterModel {
     };
 }
 
+
+const lmProviders: LmProvider[] = [
+    new OpenRouterModelProvider(),  
+    new VsCodeLmProvider(),
+];
+
 /**
- * Fetch available models from OpenRouter API
- * @param apiKey OpenRouter API key
- * @returns Array of available models, sorted with free models first
+ * Get available LM providers
+ * @param name Optional name of the provider to filter by.
+ * If provided, returns only the specified provider 
+ * @returns Array of LlmProvider instances
+ * If name is provided, returns an array with the matching provider or empty array if not found
  */
-export async function fetchAvailableModels(apiKey: string): Promise<OpenRouterModel[]> {
-    try {
-        const response = await fetch(`${OPENROUTER_API_URL}/models`, {
-            headers: {
-                Authorization: `Bearer ${apiKey}`,
-                "Content-Type": "application/json",
-            },
-        });
-
-        if (!response.ok) {
-            throw new Error(`Failed to fetch models: ${response.statusText}`);
-        }
-
-        const data = (await response.json()) as { data: OpenRouterModel[] };
-        const models = data.data;
-
-        // Sort models: free models first, then by price
-        return models.sort((a, b) => {
-            // Convert pricing strings to numbers for comparison
-            const aPromptPrice = parseFloat(a.pricing.prompt);
-            const aCompletionPrice = parseFloat(a.pricing.completion);
-            const bPromptPrice = parseFloat(b.pricing.prompt);
-            const bCompletionPrice = parseFloat(b.pricing.completion);
-
-            // Calculate total price per token
-            const aTotalPrice = aPromptPrice + aCompletionPrice;
-            const bTotalPrice = bPromptPrice + bCompletionPrice;
-
-            // Sort by price (ascending)
-            return aTotalPrice - bTotalPrice;
-        });
-    } catch (error) {
-        console.error("ERROR", `Failed to fetch models: ${error}`);
-        throw error;
+export function getLmProviders(name?: string): LmProvider[] {
+    if (name) {
+        const provider = lmProviders.find(p => p.getProviderName() === name);
+        return provider ? [provider] : [];
     }
+    return [...lmProviders];
 }
+
 
 /**
  * Call the LLM API with caching support
@@ -74,9 +58,14 @@ export async function fetchAvailableModels(apiKey: string): Promise<OpenRouterMo
  */
 export async function callLlm(
     prompt: string,
-    { useCache = true, llmApiKey, context, model }: LlmOptions,
+    { providerName, useCache = true, llmApiKey, context, model }: LlmOptions,
 ): Promise<string> {
     console.log(`Prompt: ${prompt}`);
+
+    const [lmProvider] = getLmProviders(providerName); 
+    if (lmProvider === undefined) {
+        throw new Error(`Provider ${providerName} not found`);
+    }
 
     // Initialize cache path if context is provided, path is not yet initialized, and cache is enabled
     if (useCache && context) {
@@ -109,30 +98,12 @@ export async function callLlm(
         apiKey = await secretsManager.getApiKey();
     }
 
-    if (!apiKey) {
-        throw new Error("API key is not set. Please configure your API key in the extension settings.");
-    }
 
-    const client = new OpenAI({ apiKey, baseURL: OPENROUTER_API_URL });
-
-    // Use provided model or default
-    const modelToUse = model || OPENROUTER_DEFAULT_MODEL;
-
+    const modelToUse = model || (await lmProvider.fetchAvailableModels(apiKey))[0].id;
     let responseText = "";
     try {
-        const r = await client.chat.completions.create({
-            model: modelToUse,
-            messages: [{ role: "user", content: prompt }],
-        });
-
-        // Handle API error response
-        if ("error" in r) {
-            const errorMessage = (r.error as any)?.message || String(r.error);
-            console.error("ERROR", `API returned error: ${errorMessage}`);
-            throw new Error(errorMessage);
-        }
-
-        responseText = r.choices[0]?.message?.content || "";
+        // Send request to the LLM provider
+        responseText = await lmProvider.sendRequest(modelToUse, prompt, apiKey);
         if (!responseText) {
             console.warn("WARNING", "API returned empty response");
         }
