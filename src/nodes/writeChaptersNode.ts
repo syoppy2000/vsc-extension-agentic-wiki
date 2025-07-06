@@ -5,15 +5,11 @@ import { getContentForIndices } from "../utils";
 import { getChapterLanguageContext, capitalizeFirstLetter } from "../utils/languageUtils";
 import { formatContentMap, createSafeFilename } from "../utils/fileUtils";
 
-interface WriteChaptersNodePrepResult {
-    itemsToProcess: ChapterItem[];
-    shared: SharedStore;
-}
 
 export default class WriteChaptersNode extends BatchNode<SharedStore, NodeParams> {
     private chaptersWrittenSoFar: string[] = [];
 
-    async prep(shared: SharedStore): Promise<WriteChaptersNodePrepResult> {
+    async prep(shared: SharedStore): Promise<ChapterItem[]> {
         const chapterOrder = shared.chapterOrder;
         const abstractions = shared.abstractions;
         const filesData = shared.files;
@@ -99,10 +95,7 @@ export default class WriteChaptersNode extends BatchNode<SharedStore, NodeParams
         }
 
         console.log(`Preparing to write ${itemsToProcess.length} chapters...`);
-        return {
-            itemsToProcess,
-            shared,
-        }; // Iterable object for BatchNode
+        return itemsToProcess; // Iterable object for BatchNode
     }
 
     async exec(item: ChapterItem): Promise<string> {
@@ -217,7 +210,7 @@ export default class WriteChaptersNode extends BatchNode<SharedStore, NodeParams
 
     async post(
         shared: SharedStore,
-        _: WriteChaptersNodePrepResult,
+        _: ChapterItem[], // Not used, but required by BatchNode
         execResList: string[],
     ): Promise<string | undefined> {
         // execResList contains generated Markdown for each chapter, in order
