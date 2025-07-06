@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { Node } from "pocketflow";
+import { createSafeFilename } from "../utils/fileUtils";
 
 import { SharedStore, NodeParams } from "../types";
 
@@ -75,8 +76,7 @@ export default class CombineTutorialNode extends Node<SharedStore, NodeParams> {
             if (0 <= abstractionIndex && abstractionIndex < abstractions.length && i < chaptersContent.length) {
                 const abstractionName = abstractions[abstractionIndex].name; // Potentially translated name
                 // Clean potentially translated name for filename
-                const safeName = abstractionName.replace(/[^a-zA-Z0-9]/g, "_").toLowerCase();
-                const filename = `${(i + 1).toString().padStart(2, "0")}_${safeName}.md`;
+                const filename = createSafeFilename(abstractionName, i);
                 indexContent += `${i + 1}. [${abstractionName}](${filename})\n`; // Use potentially translated name in link text
 
                 // Add attribution to chapter content (using English fixed string)
