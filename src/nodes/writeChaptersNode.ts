@@ -1,4 +1,4 @@
-import { BatchNode } from "pocketflow";
+import { ParallelBatchNode } from "pocketflow";
 import { callLlm } from "../services/llm";
 import { ChapterInfo, ChapterItem, SharedStore, NodeParams } from "../types";
 import { getContentForIndices } from "../utils";
@@ -6,7 +6,7 @@ import { getChapterLanguageContext, capitalizeFirstLetter } from "../utils/langu
 import { formatContentMap, createSafeFilename } from "../utils/fileUtils";
 
 
-export default class WriteChaptersNode extends BatchNode<SharedStore, NodeParams> {
+export default class WriteChaptersNode extends ParallelBatchNode<SharedStore, NodeParams> {
     private chaptersWrittenSoFar: string[] = [];
 
     async prep(shared: SharedStore): Promise<ChapterItem[]> {
