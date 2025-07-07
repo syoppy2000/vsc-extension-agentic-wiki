@@ -4,7 +4,7 @@ import * as fs from "fs";
 import { GlobalConfig } from "../types";
 import { CONFIG_KEY, DEFAULT_CONFIG, OUTPUT_DIR, OPENROUTER_DEFAULT_MODEL } from "../constants";
 import { secretsManager } from "../extension";
-import { DEFAULT_LLM_PROVIDER, getLmProviders } from "../services/llm/llmService";
+import { fetchAvailableModels, OpenRouterModel } from "../services/llm/llmService";
 
 export function registerConfigCommand(context: vscode.ExtensionContext) {
     const config = vscode.commands.registerCommand("agentic-wiki.config", async () => {
@@ -69,11 +69,8 @@ class ConfigPanel {
                     case "saveConfig":
                         await this.saveConfig(message.config);
                         break;
-                    case "fetchProviders":
-                        await this.fetchAndSendProviders();
-                        break;
                     case "fetchModels":
-                        await this.fetchAndSendModels(message.provider, message.apiKey);
+                        await this.fetchAndSendModels(message.apiKey);
                         break;
                 }
             },
@@ -104,8 +101,10 @@ class ConfigPanel {
                     command: "updateApiKey",
                     apiKey,
                 });
+
+                // If API key is available, fetch models
                 if (apiKey) {
-                    await this.fetchAndSendModels(this.config.llmProvider, apiKey);
+                    await this.fetchAndSendModels(apiKey);
                 }
             }
         } catch (error) {
@@ -114,70 +113,31 @@ class ConfigPanel {
     }
 
     /**
-     * Fetch available providers and send them to the webview
-     */
-    private async fetchAndSendProviders() {
-        try {
-            // Show loading status
-            vscode.window.setStatusBarMessage("Fetching available providers...", 3000);
-
-            // Fetch models from OpenRouter API
-            const providers = getLmProviders();
-            if (!providers || providers.length === 0) {
-                throw new Error("No providers available");
-            }
-
-            const providerList = providers.map(provider => ({
-                id: provider.getProviderName(),
-                name: provider.getProviderName(),
-            }));
-
-            // Send models to webview
-            this.panel.webview.postMessage({
-                command: "updateProviders",
-                providers: providerList,
-                selectedProvider: this.config.llmProvider || DEFAULT_LLM_PROVIDER, 
-            });
-        } catch (error) {
-            console.error("Error fetching providers:", error);
-
-            // Send error to webview
-            this.panel.webview.postMessage({
-                command: "updateProviders",
-                providers: [],
-                selectedProvider: this.config.llmProvider || DEFAULT_LLM_PROVIDER,
-                error: error instanceof Error ? error.message : String(error),
-            });
-
-            // Show error notification
-            vscode.window.showErrorMessage(
-                `Failed to fetch providers: ${error instanceof Error ? error.message : String(error)}`,
-            );
-        }
-    }
-
-    /**
      * Fetch available models and send them to the webview
      */
-    private async fetchAndSendModels(provider: string, apiKey: string) {
+    private async fetchAndSendModels(apiKey: string) {
+        if (!apiKey) {
+            // If no API key, send empty models list
+            this.panel.webview.postMessage({
+                command: "updateModels",
+                models: [],
+                selectedModel: this.config.llmModel || OPENROUTER_DEFAULT_MODEL,
+            });
+            return;
+        }
+
         try {
             // Show loading status
             vscode.window.setStatusBarMessage("Fetching available models...", 3000);
 
-            const [llmProvider] = getLmProviders(provider);
-            if (llmProvider === undefined) {
-                throw new Error(`Provider ${provider} not found`);
-            }
-
             // Fetch models from OpenRouter API
-            const models = await llmProvider.fetchAvailableModels(apiKey);
-            console.log("Available models:", models);
+            const models = await fetchAvailableModels(apiKey);
 
             // Send models to webview
             this.panel.webview.postMessage({
                 command: "updateModels",
                 models,
-                selectedModel: this.config.llmModel || models[0]?.id,
+                selectedModel: this.config.llmModel || OPENROUTER_DEFAULT_MODEL,
             });
         } catch (error) {
             console.error("Error fetching models:", error);
@@ -186,7 +146,7 @@ class ConfigPanel {
             this.panel.webview.postMessage({
                 command: "updateModels",
                 models: [],
-                selectedModel: this.config.llmModel,
+                selectedModel: this.config.llmModel || OPENROUTER_DEFAULT_MODEL,
                 error: error instanceof Error ? error.message : String(error),
             });
 

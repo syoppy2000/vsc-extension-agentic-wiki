@@ -45,7 +45,6 @@ export default class OrderChaptersNode extends Node<SharedStore, NodeParams> {
             projectName,
             listLangNote,
             useCache,
-            llmProvider: shared.llmProvider,
             apiKey,
             model: shared.llmModel,
         };
@@ -84,7 +83,6 @@ export default class OrderChaptersNode extends Node<SharedStore, NodeParams> {
         const response = await callLlm(prompt, {
             llmApiKey: prepRes.apiKey,
             useCache,
-            providerName: prepRes.llmProvider,
             context: this._params.context,
             model: prepRes.model,
         });

@@ -30,7 +30,6 @@ export default class IdentifyAbstractionsNode extends Node<SharedStore, NodePara
             language,
             useCache,
             maxAbstractionNum,
-            llmProvider: shared.llmProvider,
             apiKey: shared.llmApiKey,
             model: shared.llmModel,
         };
@@ -45,7 +44,6 @@ export default class IdentifyAbstractionsNode extends Node<SharedStore, NodePara
         // Pass the extension context from flow parameters if available
         const response = await callLlm(prompt, {
             useCache,
-            providerName: preRes.llmProvider,
             llmApiKey: preRes.apiKey,
             context: this._params.context,
             model: preRes.model,

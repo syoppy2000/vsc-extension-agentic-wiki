@@ -78,14 +78,6 @@
 
             <h2 class="section-title">LLM Configuration</h2>
             <div class="form-group">
-                <label for="llmProvider">LLM Provider</label>
-                <select id="llmProvider">
-                    <option value="">Loading providers...</option>
-                </select>
-                <div class="description">Select a provider to use</div>
-            </div>
-
-            <div class="form-group">
                 <label for="llmApiKey">OpenRouter API Key</label>
                 <input type="password" id="llmApiKey" />
                 <div class="description">
@@ -99,7 +91,7 @@
                 <select id="llmModel">
                     <option value="">Loading models...</option>
                 </select>
-                <div class="description">Select a model to use</div>
+                <div class="description">Select a model to use (free models are listed first)</div>
             </div>
 
             <h2 class="section-title">Project Configuration</h2>
@@ -189,42 +181,11 @@
                         case 'updateApiKey':
                             document.getElementById("llmApiKey").value = message.apiKey || "";
                             break;
-                        case 'updateProviders':
-                            updateProviderDropdown(message.providers, message.selectedProvider);
-                            break;
-                         case 'updateModels':
+                        case 'updateModels':
                             updateModelDropdown(message.models, message.selectedModel);
                             break;
                     }
                 });
-
-                // Update provider dropdown
-                function updateProviderDropdown(providers, selectedProvider) {
-                    const providerSelect = document.getElementById("llmProvider");
-                    providerSelect.innerHTML = ""; // Clear existing options
-
-                    if (!providers || providers.length === 0) {
-                        const option = document.createElement("option");
-                        option.value = "";
-                        option.textContent = "No providers available";
-                        modelSelect.appendChild(option);
-                        return;
-                    }
-
-                    // Add models to dropdown
-                    providers.forEach(provider => {
-                        const option = document.createElement("option");
-                        option.value = provider.id;
-
-                        option.textContent = `${provider.name}`;
-                        providerSelect.appendChild(option);
-                    });
-
-                    // Set selected model if provided
-                    if (selectedProvider) {
-                        providerSelect.value = selectedProvider;
-                    }
-                }
 
                 // Update model dropdown with fetched models
                 function updateModelDropdown(models, selectedModel) {
@@ -244,16 +205,13 @@
                         const option = document.createElement("option");
                         option.value = model.id;
 
-                        // Format price for display if exists
-                        if ('pricing' in model && !model.pricing) {
-                            const promptPrice = parseFloat(model.pricing.prompt);
-                            const completionPrice = parseFloat(model.pricing.completion);
-                            const totalPrice = promptPrice + completionPrice;
-                            const priceText = totalPrice === 0 ? "Free" : `$${totalPrice.toFixed(7)}/token`;
-                            option.textContent = `${model.name} (${priceText})`;
-                        } else {
-                            option.textContent = `${model.name}`;
-                        }
+                        // Format price for display
+                        const promptPrice = parseFloat(model.pricing.prompt);
+                        const completionPrice = parseFloat(model.pricing.completion);
+                        const totalPrice = promptPrice + completionPrice;
+                        const priceText = totalPrice === 0 ? "Free" : `$${totalPrice.toFixed(7)}/token`;
+
+                        option.textContent = `${model.name} (${priceText})`;
                         modelSelect.appendChild(option);
                     });
 
@@ -263,44 +221,18 @@
                     }
                 }
 
-                // Add event handler to llProvider
-                document.getElementById("llmProvider").addEventListener("change", (event) => {
-                    const selectedProvider = event.target.value;
-                    if (selectedProvider) {
-                        // Request models for the selected provider
-                        vscode.postMessage({
-                            command: "fetchModels",
-                            provider: selectedProvider,
-                            apiKey: config.llmApiKey || ""
-                        });
-                    } else {
-                        // Clear model dropdown if no provider is selected
-                        updateModelDropdown([], "");
-                    }
-                });
-
                 // Fill the form
-                if (document.readyState === "loading" || document.readyState === "interactive") {
-                    document.addEventListener("DOMContentLoaded", initialize);
-                } else {
-                    initialize();
-                }
-
-                function initialize() {
+                document.addEventListener("DOMContentLoaded", () => {
                     // Set values for other fields
                     document.getElementById("llmApiKey").value = config.llmApiKey || "";
 
-                    // Request providers 
-                    vscode.postMessage({
-                        command: "fetchProviders"
-                    });
-
-                    // Request models
-                    vscode.postMessage({
-                        command: "fetchModels",
-                        provider: config.llmProvider,
-                        apiKey: config.llmApiKey
-                    });
+                    // Request models if API key is set
+                    if (config.llmApiKey) {
+                        vscode.postMessage({
+                            command: "fetchModels",
+                            apiKey: config.llmApiKey
+                        });
+                    }
 
                     document.getElementById("localDir").value = config.localDir || workspaceFolder;
                     document.getElementById("projectName").value = config.projectName || "";
@@ -325,12 +257,11 @@
 
                     // Save button click event
                     document.getElementById("saveButton").addEventListener("click", saveConfig);
-                }
+                });
 
                 // Save configuration
                 function saveConfig() {
                     const newConfig = {
-                        llmProvider: document.getElementById("llmProvider").value,
                         llmApiKey: document.getElementById("llmApiKey").value,
                         llmModel: document.getElementById("llmModel").value,
                         localDir: document.getElementById("localDir").value || workspaceFolder,

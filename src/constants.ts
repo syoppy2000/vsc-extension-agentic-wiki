@@ -1,4 +1,3 @@
-import { DEFAULT_LLM_PROVIDER } from "./services";
 import { GlobalConfig } from "./types";
 
 export const CONFIG_KEY = "agentic-wiki.config";
@@ -68,7 +67,6 @@ const DEFAULT_EXCLUDE_PATTERNS = [
 ];
 
 export const DEFAULT_CONFIG: GlobalConfig = {
-    llmProvider: DEFAULT_LLM_PROVIDER,
     llmApiKey: "",
     llmModel: OPENROUTER_DEFAULT_MODEL,
     localDir: "",

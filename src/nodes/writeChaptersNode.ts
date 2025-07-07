@@ -5,11 +5,15 @@ import { getContentForIndices } from "../utils";
 import { getChapterLanguageContext, capitalizeFirstLetter } from "../utils/languageUtils";
 import { formatContentMap, createSafeFilename } from "../utils/fileUtils";
 
+interface WriteChaptersNodePrepResult {
+    itemsToProcess: ChapterItem[];
+    shared: SharedStore;
+}
 
 export default class WriteChaptersNode extends BatchNode<SharedStore, NodeParams> {
     private chaptersWrittenSoFar: string[] = [];
 
-    async prep(shared: SharedStore): Promise<ChapterItem[]> {
+    async prep(shared: SharedStore): Promise<WriteChaptersNodePrepResult> {
         const chapterOrder = shared.chapterOrder;
         const abstractions = shared.abstractions;
         const filesData = shared.files;
@@ -95,7 +99,10 @@ export default class WriteChaptersNode extends BatchNode<SharedStore, NodeParams
         }
 
         console.log(`Preparing to write ${itemsToProcess.length} chapters...`);
-        return itemsToProcess; // Iterable object for BatchNode
+        return {
+            itemsToProcess,
+            shared,
+        }; // Iterable object for BatchNode
     }
 
     async exec(item: ChapterItem): Promise<string> {
@@ -179,7 +186,6 @@ export default class WriteChaptersNode extends BatchNode<SharedStore, NodeParams
 
         const chapterContent = await callLlm(prompt, {
             useCache: this._params.useCache as boolean,
-            providerName: this._params.llmProvider as string,
             llmApiKey: this._params.llmApiKey as string,
             context: this._params.context,
             model: this._params.llmModel as string,
@@ -211,7 +217,7 @@ export default class WriteChaptersNode extends BatchNode<SharedStore, NodeParams
 
     async post(
         shared: SharedStore,
-        _: ChapterItem[], // Not used, but required by BatchNode
+        _: WriteChaptersNodePrepResult,
         execResList: string[],
     ): Promise<string | undefined> {
         // execResList contains generated Markdown for each chapter, in order
