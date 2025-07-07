@@ -59,6 +59,7 @@ export default class AnalyzeRelationshipsNode extends Node<SharedStore, NodePara
             language,
             useCache,
             numAbstractions: abstractions.length,
+            llmProvider: shared.llmProvider,
             apiKey: shared.llmApiKey!,
             model: shared.llmModel,
         };
@@ -78,6 +79,7 @@ export default class AnalyzeRelationshipsNode extends Node<SharedStore, NodePara
         // Call LLM with extension context
         const response = await callLlm(prompt, {
             useCache,
+            providerName: prepRes.llmProvider,
             llmApiKey: prepRes.apiKey,
             context: this._params.context,
             model: prepRes.model,
