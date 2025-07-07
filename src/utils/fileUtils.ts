@@ -48,7 +48,7 @@ export function formatAbstractionListing(abstractions: Array<{ index: number; na
  * @returns Safe filename string
  */
 export function createSafeFilename(name: string, index?: number): string {
-    const safeName = name.replace(/[\\\/:\*\?\"<>| ]/g, "_").toLowerCase();
+    const safeName = name.replace(/[^a-zA-Z0-9]/g, "_").toLowerCase();
 
     if (typeof index === "number") {
         return `${(index + 1).toString().padStart(2, "0")}_${safeName}.md`;

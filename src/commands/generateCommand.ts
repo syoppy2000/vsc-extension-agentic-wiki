@@ -3,7 +3,6 @@ import { CONFIG_KEY } from "../constants";
 import { createFlow } from "../flow";
 import { SharedStore } from "../types";
 import { secretsManager } from "../extension";
-import { DEFAULT_LLM_PROVIDER } from "../services";
 
 export function registerGenerateCommand(context: vscode.ExtensionContext) {
     const generate = vscode.commands.registerCommand("agentic-wiki.generate", async () => {
@@ -36,6 +35,9 @@ export function registerGenerateCommand(context: vscode.ExtensionContext) {
 
                     // Get API key from secure storage
                     const apiKey = await secretsManager.getApiKey();
+                    if (!apiKey) {
+                        throw new Error("API key is not set. Please configure your API key in the extension settings.");
+                    }
 
                     const flow = createFlow();
                     let shared = context.globalState.get<SharedStore>(CONFIG_KEY) || ({} as SharedStore);
@@ -43,12 +45,9 @@ export function registerGenerateCommand(context: vscode.ExtensionContext) {
                     // Get the model from shared state or use default
                     const model = shared.llmModel || "";
 
-                    // Get the prvider from shared state or use default
-                    const llmProvider = shared.llmProvider || DEFAULT_LLM_PROVIDER;
-
                     // Add API key, model, and extension context to flow parameters but not to shared state
-                    flow.setParams({ ...shared, llmProvider: llmProvider, llmApiKey: apiKey, llmModel: model, context });
-                    await flow.run({...shared});
+                    flow.setParams({ ...shared, llmApiKey: apiKey, llmModel: model, context });
+                    await flow.run(shared);
 
                     progress.report({ increment: 30, message: "Writing files..." });
                     progress.report({ increment: 10, message: "Wiki page successfully generated!" });
