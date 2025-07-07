@@ -179,6 +179,7 @@ export default class WriteChaptersNode extends ParallelBatchNode<SharedStore, No
 
         const chapterContent = await callLlm(prompt, {
             useCache: this._params.useCache as boolean,
+            providerName: this._params.llmProvider as string,
             llmApiKey: this._params.llmApiKey as string,
             context: this._params.context,
             model: this._params.llmModel as string,
